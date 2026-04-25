@@ -1,140 +1,1419 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>题型1 手绘边界有限差分</title><link rel="stylesheet" href="css/style.css"><style>
-.preset-row{display:grid;grid-template-columns:1fr;gap:8px}.preset-btn{width:100%;justify-content:flex-start}.mini-note code{background:#f1f5f9;border-radius:6px;padding:1px 5px}.eq-chip.warn{background:#fef3c7;color:#92400e}
-</style></head>
-<body><div class="app"><header class="topbar"><a class="btn" href="index.html" style="text-decoration:none">← 返回主页</a><div><h1>题型 1：手绘边界有限差分</h1><div class="subtitle">支持 2017/2018/2019/2024/2025 Q4 的二维 Poisson 题目快速导入。</div></div></header>
-<section><div class="layout"><aside class="card panel">
-  <div class="control-group">
-    <h3>0 · 快速导入往年题</h3>
-    <div class="preset-row">
-      <button class="btn preset-btn" data-preset="p2017">2017 Q4：Poisson，hx=2，hy=1，4 unknowns</button>
-      <button class="btn preset-btn" data-preset="p2018">2018 Q4：Poisson，h=1，3 unknowns</button>
-      <button class="btn preset-btn" data-preset="p2019">2019 Q4：Poisson，hx=2，hy=1，5 unknowns</button>
-      <button class="btn preset-btn" data-preset="p2024">2024 Q4：Poisson，h=1，4 unknowns</button>
-      <button class="btn preset-btn" data-preset="p2025">2025 Q4：Poisson，h=0.5，3 unknowns</button>
-    </div>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>题型1 手绘边界有限差分</title>
+  <link rel="stylesheet" href="css/style.css" />
+
+  <style>
+    .preset-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .preset-btn {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .eq-chip.warn {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .formal-eq {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 8px 0;
+      overflow-x: auto;
+    }
+
+    .formal-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: "Times New Roman", serif;
+      font-size: 30px;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+
+    .formal-line.small {
+      font-size: 24px;
+    }
+
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      line-height: 1.1;
+      min-width: max-content;
+    }
+
+    .frac .top {
+      display: block;
+      padding: 0 10px 5px;
+      border-bottom: 3px solid #111827;
+    }
+
+    .frac .bottom {
+      display: block;
+      padding: 5px 10px 0;
+    }
+
+    .sub {
+      font-size: 0.65em;
+      vertical-align: sub;
+      margin-left: 1px;
+    }
+
+    .sup {
+      font-size: 0.65em;
+      vertical-align: super;
+      margin-left: 1px;
+    }
+
+    .math-i {
+      font-style: italic;
+    }
+
+    .eq-right .frac {
+      font-size: 22px;
+    }
+
+    .eq-right {
+      overflow-x: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="btn" href="index.html" style="text-decoration:none">← 返回主页</a>
+      <div>
+        <h1>题型 1：手绘边界有限差分</h1>
+      </div>
+    </header>
+
+    <section>
+      <div class="layout">
+        <aside class="card panel">
+          <div class="control-group">
+            <h3>0 · 快速导入往年题</h3>
+
+            <div class="preset-row">
+              <button class="btn preset-btn" data-preset="p2017">2017 Q4：Poisson，hx=2，hy=1，4 unknowns</button>
+              <button class="btn preset-btn" data-preset="p2018">2018 Q4：Poisson，h=1，3 unknowns</button>
+              <button class="btn preset-btn" data-preset="p2019">2019 Q4：Poisson，hx=2，hy=1，5 unknowns</button>
+              <button class="btn preset-btn" data-preset="p2024">2024 Q4：Poisson，h=1，4 unknowns</button>
+              <button class="btn preset-btn" data-preset="p2025">2025 Q4：Poisson，h=0.5，3 unknowns</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h3>1 · 操作步骤</h3>
+
+            <div class="segmented">
+              <button class="btn mode-btn" data-mode="draw">① 画边界</button>
+              <button class="btn mode-btn" data-mode="set">② 设置边界值</button>
+              <button class="btn mode-btn active" data-mode="solve">③ 点选未知点求解</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h3>2 · 生成网格</h3>
+
+            <div class="field-row">
+              <div>
+                <label>x 方向点数</label>
+                <input id="nx" type="number" min="3" max="12" value="4" />
+              </div>
+
+              <div>
+                <label>y 方向点数</label>
+                <input id="ny" type="number" min="2" max="12" value="2" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div>
+                <label>hx</label>
+                <input id="hx" type="number" step="0.1" value="0.5" />
+              </div>
+
+              <div>
+                <label>hy</label>
+                <input id="hy" type="number" step="0.1" value="0.5" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div>
+                <label>x 起点</label>
+                <input id="xOrigin" type="number" step="0.5" value="0" />
+              </div>
+
+              <div>
+                <label>y 起点</label>
+                <input id="yOrigin" type="number" step="0.5" value="0" />
+              </div>
+            </div>
+
+            <div class="field-row one">
+              <div>
+                <label>源项 f(x,y)</label>
+                <input id="source" value="(x+y)*exp(x*y)" />
+              </div>
+            </div>
+
+            <button class="btn dark" id="newGrid">生成新网格</button>
+          </div>
+
+          <div class="control-group">
+            <h3>3 · 自动求解</h3>
+
+            <div class="field-row one">
+              <div>
+                <label>自动迭代次数</label>
+                <input id="iterations" type="number" min="1" value="3" />
+              </div>
+            </div>
+
+            <div class="field-row one">
+              <div>
+                <label>求解方法</label>
+                <select id="method">
+                  <option value="gauss">Gauss-Seidel</option>
+                  <option value="jacobi">Jacobi</option>
+                  <option value="sor">SOR</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-row one" id="omegaWrap" style="display:none">
+              <div>
+                <label>SOR 松弛因子 ω</label>
+                <input id="omega" type="number" min="0.1" max="1.95" step="0.05" value="1.2" />
+              </div>
+            </div>
+
+            <div class="segmented">
+              <button class="btn dark" id="autoSolve">自动求解</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h3>4 · 重置</h3>
+
+            <div class="segmented">
+              <button class="btn warn" id="resetAll">全部重置</button>
+            </div>
+          </div>
+        </aside>
+
+        <main class="card main-canvas">
+          <div class="canvas-header">
+            <div>
+              <h3>手绘边界画布</h3>
+              <div class="subtitle" id="canvasTip"></div>
+            </div>
+
+            <div class="hint" id="modeHint">点选求解</div>
+          </div>
+
+          <div class="visual-stack">
+            <div class="sub-card">
+              <div class="sub-card-title">
+                <div>
+                  <h4>点阵网格</h4>
+                </div>
+              </div>
+
+              <div class="grid-canvas-wrap">
+                <svg id="gridSvg" viewBox="0 0 900 460"></svg>
+              </div>
+
+              <div class="legend">
+                <div class="legend-item"><span class="swatch" style="background:#111827"></span> 边界点</div>
+                <div class="legend-item"><span class="swatch" style="background:#fff;border:2px solid #111827"></span> 内部未知点</div>
+                <div class="legend-item"><span class="swatch" style="background:#d1fae5"></span> 已求值</div>
+                <div class="legend-item"><span class="swatch" style="background:#dbeafe"></span> 邻点</div>
+                <div class="legend-item"><span class="swatch" style="background:#f1f5f9"></span> 外部区域</div>
+              </div>
+            </div>
+
+            <div class="sub-card">
+              <div class="sub-card-title">
+                <div>
+                  <h4>分块热力图</h4>
+                </div>
+              </div>
+
+              <div class="heat-map">
+                <canvas id="heatCanvas" width="900" height="300"></canvas>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <aside class="card formula-card">
+          <h3>公式卡片</h3>
+
+          <div class="pretty-box">
+            <div class="pretty-label">Rule</div>
+            <div id="ruleBox"></div>
+          </div>
+
+          <div class="pretty-box">
+            <div class="pretty-label">Substitution</div>
+            <div id="subBox"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
   </div>
 
-  <div class="control-group">
-    <h3>1 · 操作步骤</h3>
-    <div class="segmented">
-      <button class="btn mode-btn" data-mode="draw">① 画边界</button>
-      <button class="btn mode-btn" data-mode="set">② 设置边界值</button>
-      <button class="btn mode-btn active" data-mode="solve">③ 点选未知点求解</button>
-    </div>
-  </div>
+  <script>
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
 
-  <div class="control-group">
-    <h3>2 · 生成网格</h3>
-    <div class="field-row">
-      <div><label>x 方向点数</label><input id="nx" type="number" min="3" max="12" value="4"></div>
-      <div><label>y 方向点数</label><input id="ny" type="number" min="2" max="12" value="2"></div>
-    </div>
-    <div class="field-row">
-      <div><label>hx</label><input id="hx" type="number" step="0.1" value="0.5"></div>
-      <div><label>hy</label><input id="hy" type="number" step="0.1" value="0.5"></div>
-    </div>
-    <div class="field-row">
-      <div><label>x 起点</label><input id="xOrigin" type="number" step="0.5" value="0"></div>
-      <div><label>y 起点</label><input id="yOrigin" type="number" step="0.5" value="0"></div>
-    </div>
-    <div class="field-row one"><div><label>源项 f(x,y)</label><input id="source" value="(x+y)*exp(x*y)"></div></div>
-    <button class="btn dark" id="newGrid">生成新网格</button>
-    <div class="mini-note">通用格式：<code>Uxx + Uyy = f(x,y)</code>。支持 hx≠hy。</div>
-  </div>
+    const state = {
+      nx: 5,
+      ny: 4,
+      hx: 1,
+      hy: 1,
+      xOrigin: 0,
+      yOrigin: 0,
+      mode: "solve",
+      vertices: [],
+      closed: false,
+      boundarySet: new Set(),
+      activeSet: new Set(),
+      interiorSet: new Set(),
+      outsideSet: new Set(),
+      values: new Map(),
+      solvedSet: new Set(),
+      selected: null,
+      neighbors: [],
+      lastCalc: null
+    };
 
-  <div class="control-group">
-    <h3>3 · 自动求解</h3>
-    <div class="field-row one"><div><label>自动迭代次数</label><input id="iterations" type="number" min="1" value="3"></div></div>
-    <div class="field-row one"><div><label>求解方法</label><select id="method"><option value="gauss">Gauss-Seidel</option><option value="jacobi">Jacobi</option><option value="sor">SOR</option></select></div></div>
-    <div class="field-row one" id="omegaWrap" style="display:none"><div><label>SOR 松弛因子 ω</label><input id="omega" type="number" min="0.1" max="1.95" step="0.05" value="1.2"></div></div>
-    <div class="segmented"><button class="btn dark" id="autoSolve">自动求解</button></div>
-  </div>
+    const svg = $("#gridSvg");
+    const canvas = $("#heatCanvas");
+    const ctx = canvas.getContext("2d");
 
-  <div class="control-group">
-    <h3>4 · 重置</h3>
-    <div class="segmented"><button class="btn warn" id="resetAll">全部重置</button></div>
-  </div>
-</aside><main class="card main-canvas"><div class="canvas-header"><div><h3>手绘边界画布</h3><div class="subtitle" id="canvasTip">当前步骤：画边界。请按顺序点击网格点，最后点击第一个点闭合。</div></div><div class="hint" id="modeHint">画边界</div></div><div class="visual-stack"><div class="sub-card"><div class="sub-card-title"><div><h4>点阵网格</h4><p>黑色粗线是边界；水平/竖直边经过的网格点也会成为边界点；斜边只保留端点。</p></div></div><div class="grid-canvas-wrap"><svg id="gridSvg" viewBox="0 0 900 460"></svg></div><div class="legend"><div class="legend-item"><span class="swatch" style="background:#111827"></span> 边界点</div><div class="legend-item"><span class="swatch" style="background:#fff;border:2px solid #111827"></span> 内部未知点</div><div class="legend-item"><span class="swatch" style="background:#d1fae5"></span> 已求值</div><div class="legend-item"><span class="swatch" style="background:#dbeafe"></span> 邻点</div><div class="legend-item"><span class="swatch" style="background:#f1f5f9"></span> 外部区域</div></div></div><div class="sub-card"><div class="sub-card-title"><div><h4>分块热力图</h4><p>每求出一个点，对应位置会自动生成颜色块。</p></div></div><div class="heat-map"><canvas id="heatCanvas" width="900" height="300"></canvas></div></div></div></main><aside class="card formula-card"><h3>公式卡片</h3><div class="pretty-box"><div class="pretty-label">Rule</div><div id="ruleBox"></div></div><div class="pretty-box"><div class="pretty-label">Substitution</div><div id="subBox"></div></div></aside></div></section></div>
-<script>
-const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));const state={nx:5,ny:4,hx:1,hy:1,xOrigin:0,yOrigin:0,mode:"draw",vertices:[],closed:false,boundarySet:new Set,activeSet:new Set,interiorSet:new Set,outsideSet:new Set,values:new Map,solvedSet:new Set,selected:null,neighbors:[],lastCalc:null};const svg=$("#gridSvg"),canvas=$("#heatCanvas"),ctx=canvas.getContext("2d");const key=(i,j)=>`${i},${j}`,parseKey=k=>k.split(",").map(Number),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));function fmt(n,d=4){if(n==null||Number.isNaN(n)||!Number.isFinite(n))return"?";return Number(n).toFixed(d).replace(/\.?0+$/,'')}function compileExpr(expr,names){const safe=String(expr||"0").replace(/\bpi\b/gi,"Math.PI").replace(/\be\b/g,"Math.E").replace(/\bsin\b/g,"Math.sin").replace(/\bcos\b/g,"Math.cos").replace(/\btan\b/g,"Math.tan").replace(/\bexp\b/g,"Math.exp").replace(/\blog\b/g,"Math.log").replace(/\bsqrt\b/g,"Math.sqrt").replace(/\babs\b/g,"Math.abs").replace(/\bpow\b/g,"Math.pow").replace(/\^/g,"**");try{return new Function(...names,`"use strict"; return (${safe});`)}catch{return()=>0}}function evalExpr(expr,vars){try{const fn=compileExpr(expr,Object.keys(vars)),v=fn(...Object.values(vars));return Number.isFinite(v)?Number(v):0}catch{return 0}}function px(i){const p=70,w=900-p*2;return p+i/state.nx*w}function py(j){const p=55,h=460-p*2;return 460-p-j/state.ny*h}const coord=(i,j)=>({x:state.xOrigin+i*state.hx,y:state.yOrigin+j*state.hy});function updateMethodUI(){$("#omegaWrap").style.display=$("#method").value==="sor"?"grid":"none"}function getMethodName(){const v=$("#method").value;return v==="jacobi"?"Jacobi":v==="sor"?"SOR":"Gauss-Seidel"}function updateStepText(){const m=state.mode;if(m==="draw"){$("#modeHint").textContent="画边界";$("#canvasTip").textContent="当前步骤：画边界。请按顺序点击网格点，最后点击第一个点闭合。"}if(m==="set"){$("#modeHint").textContent="设置边界值";$("#canvasTip").textContent="当前步骤：设置边界值。请点击黑色边界点，然后手动输入该点的边界值。"}if(m==="solve"){$("#modeHint").textContent="点选求解";$("#canvasTip").textContent="当前步骤：点选未知点求解。请点击白色空心点，系统会自动代入四邻点计算。"}}function updateStatus(){}function setMode(mode){state.mode=mode;
-function setField(id,val){const el=$("#"+id);if(el)el.value=val}
-function markBoundary(i,j,v){const k=key(i,j);state.boundarySet.add(k);state.activeSet.add(k);state.interiorSet.delete(k);state.outsideSet.delete(k);state.values.set(k,v);state.solvedSet.add(k)}
-function markSegment(a,b,v){const [i0,j0]=a,[i1,j1]=b;const di=Math.sign(i1-i0),dj=Math.sign(j1-j0);let i=i0,j=j0;markBoundary(i,j,v);while(i!==i1||j!==j1){if(i!==i1)i+=di;if(j!==j1)j+=dj;markBoundary(i,j,v)}}
-function clearAndApplyBase(p){setField("nx",p.nx);setField("ny",p.ny);setField("hx",p.hx);setField("hy",p.hy);setField("xOrigin",p.xOrigin||0);setField("yOrigin",p.yOrigin||0);setField("source",p.source);setField("iterations",p.iterations||3);setField("method",p.method||"gauss");updateMethodUI();state.nx=p.nx;state.ny=p.ny;state.hx=p.hx;state.hy=p.hy;state.xOrigin=p.xOrigin||0;state.yOrigin=p.yOrigin||0;state.vertices=p.vertices.map(([i,j])=>({i,j}));state.closed=true;state.values.clear();state.solvedSet.clear();state.selected=null;state.neighbors=[];state.lastCalc=null;rebuildSets();}
-function fillInteriorGuess(v){for(const k of state.interiorSet){if(!state.values.has(k))state.values.set(k,v)}}
-function applyPreset(name){
-  const presets={
-    p2017:{nx:3,ny:4,hx:2,hy:1,xOrigin:0,yOrigin:0,source:"x+y",iterations:3,method:"gauss",guess:80,vertices:[[0,0],[3,0],[3,2],[2,2],[2,4],[0,4]],segments:[[[0,0],[3,0],100],[[3,0],[3,2],80],[[3,2],[2,2],80],[[2,2],[2,4],80],[[2,4],[0,4],60],[[0,4],[0,0],90]]},
-    p2018:{nx:4,ny:4,hx:1,hy:1,xOrigin:0,yOrigin:0,source:"10*x*y",iterations:3,method:"jacobi",guess:1,vertices:[[0,2],[2,4],[4,2],[2,0]],segments:[[[0,2],[2,4],1],[[2,4],[4,2],1],[[4,2],[2,0],1],[[2,0],[0,2],1]],extra:[[[1,2],10],[[2,1],10]]},
-    p2019:{nx:6,ny:4,hx:2,hy:1,xOrigin:-6,yOrigin:-2,source:"2*(x^3+y^3)",iterations:3,method:"jacobi",guess:20,vertices:[[0,1],[0,3],[2,3],[2,4],[4,4],[4,3],[6,3],[6,1],[4,1],[4,0],[2,0],[2,1]],segments:[[[0,1],[2,1],10],[[2,1],[2,0],10],[[2,0],[4,0],10],[[4,0],[4,1],10],[[4,1],[6,1],10],[[6,1],[6,3],20],[[6,3],[4,3],30],[[4,3],[4,4],30],[[4,4],[2,4],30],[[2,4],[2,3],30],[[2,3],[0,3],30],[[0,3],[0,1],20]]},
-    p2024:{nx:3,ny:4,hx:1,hy:1,xOrigin:0,yOrigin:0,source:"(x+y)^2",iterations:3,method:"jacobi",guess:2,vertices:[[2,0],[3,0],[3,2],[2,3],[1,4],[0,3],[0,2],[1,1]],segments:[[[1,4],[2,3],1],[[2,3],[3,2],1],[[3,2],[3,0],1],[[0,2],[0,3],3],[[0,3],[1,4],3],[[3,0],[2,0],3],[[2,0],[1,1],3],[[1,1],[0,2],3]]},
-    p2025:{nx:4,ny:2,hx:0.5,hy:0.5,xOrigin:0,yOrigin:0,source:"(x+y)*exp(x*y)",iterations:3,method:"gauss",guess:1.6,vertices:[[0,0],[4,0],[4,2],[0,2]],segments:[]}
-  };
-  const p=presets[name];if(!p)return;clearAndApplyBase(p);
-  if(p.segments)for(const [a,b,v] of p.segments)markSegment(a,b,v);
-  if(p.extra)for(const [[i,j],v] of p.extra)markBoundary(i,j,v);
-  if(name==="p2025"){
-    for(let j=0;j<=state.ny;j++){const y=coord(0,j).y;markBoundary(0,j,1);markBoundary(4,j,Math.exp(2*y))}
-    for(let i=0;i<=state.nx;i++){const x=coord(i,0).x;markBoundary(i,0,1);markBoundary(i,2,Math.exp(x))}
-  }
-  fillInteriorGuess(p.guess);
-  setMode("solve");render();
-}
-$$('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));updateStepText();render()}function pointInPolygon(x,y,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const xi=poly[i].i,yi=poly[i].j,xj=poly[j].i,yj=poly[j].j;const hit=((yi>y)!==(yj>y))&&(x<((xj-xi)*(y-yi))/((yj-yi)||1e-12)+xi);if(hit)inside=!inside}return inside}function rebuildSets(){state.boundarySet.clear();state.activeSet.clear();state.interiorSet.clear();state.outsideSet.clear();function add(i,j){const k=key(i,j);state.boundarySet.add(k);state.activeSet.add(k)}for(const v of state.vertices)add(v.i,v.j);if(state.vertices.length>=2){const seg=[];for(let a=0;a<state.vertices.length-1;a++)seg.push([state.vertices[a],state.vertices[a+1]]);if(state.closed)seg.push([state.vertices[state.vertices.length-1],state.vertices[0]]);for(const[p0,p1]of seg){if(p0.i===p1.i){for(let j=Math.min(p0.j,p1.j);j<=Math.max(p0.j,p1.j);j++)add(p0.i,j)}else if(p0.j===p1.j){for(let i=Math.min(p0.i,p1.i);i<=Math.max(p0.i,p1.i);i++)add(i,p0.j)}else{add(p0.i,p0.j);add(p1.i,p1.j)}}}if(!state.closed){for(let j=0;j<=state.ny;j++)for(let i=0;i<=state.nx;i++){const k=key(i,j);if(!state.boundarySet.has(k))state.outsideSet.add(k)}return}for(let j=0;j<=state.ny;j++)for(let i=0;i<=state.nx;i++){const k=key(i,j);if(state.boundarySet.has(k))continue;if(pointInPolygon(i,j,state.vertices)){state.interiorSet.add(k);state.activeSet.add(k);if(!state.values.has(k))state.values.set(k,0)}else state.outsideSet.add(k)}}function handlePointClick(i,j){if(state.mode==="draw")handleDrawClick(i,j);if(state.mode==="set")handleSetClick(i,j);if(state.mode==="solve")handleSolveClick(i,j)}function handleDrawClick(i,j){if(state.closed)return;if(state.vertices.length>=3){const f=state.vertices[0];if(f.i===i&&f.j===j){state.closed=true;rebuildSets();render();return}}const last=state.vertices[state.vertices.length-1];if(last&&last.i===i&&last.j===j)return;state.vertices.push({i,j});rebuildSets();render()}function handleSetClick(i,j){const k=key(i,j);if(!state.boundarySet.has(k))return;const old=state.values.has(k)?state.values.get(k):"";const input=prompt(`请输入边界点 (${i}, ${j}) 的边界值`,old);if(input===null)return;const value=evalExpr(input,coord(i,j));state.values.set(k,value);state.solvedSet.add(k);state.selected={i,j};state.neighbors=[];state.lastCalc={type:"boundary",i,j,...coord(i,j),value};render()}function handleSolveClick(i,j){const k=key(i,j);if(!state.interiorSet.has(k))return;calculateInteriorPoint(i,j,true);render()}function nearestBoundaryValue(i,j){let best=null,bestD=Infinity;for(const k of state.boundarySet){if(!state.values.has(k))continue;const[bi,bj]=parseKey(k),d=(bi-i)**2+(bj-j)**2;if(d<bestD){bestD=d;best=state.values.get(k)}}return best===null?0:best}function getNeighborValue(i,j){const k=key(i,j);return state.values.has(k)?state.values.get(k):nearestBoundaryValue(i,j)}function getNeighborInfo(i,j){return[{name:"左",i:i-1,j},{name:"右",i:i+1,j},{name:"上",i,j:j+1},{name:"下",i,j:j-1}].map(d=>{const k=key(d.i,d.j);return {...d,value:state.values.has(k)?state.values.get(k):nearestBoundaryValue(d.i,d.j)}})}function pointFormula(i,j,fromMap=null){
-  const {x,y}=coord(i,j);
-  const fVal=evalExpr($("#source").value,{x,y});
-  const hx=state.hx||1,hy=state.hy||1;
-  const ax=1/(hx*hx),ay=1/(hy*hy),den=2*ax+2*ay;
-  const valAt=(a,b)=>{
-    const kk=key(a,b);
-    if(fromMap&&fromMap.has(kk))return fromMap.get(kk);
-    return getNeighborValue(a,b);
-  };
-  const L=valAt(i-1,j),R=valAt(i+1,j),U=valAt(i,j+1),D=valAt(i,j-1);
-  const numerator=ax*(L+R)+ay*(U+D)-fVal;
-  const value=numerator/den;
-  return {x,y,fVal,hx,hy,ax,ay,den,numerator,L,R,U,D,value};
-}
-function calculateInteriorPoint(i,j,mark=false){
-  const k=key(i,j),c=pointFormula(i,j);
-  state.values.set(k,c.value);state.solvedSet.add(k);
-  if(mark){state.selected={i,j};state.neighbors=getNeighborInfo(i,j).map(a=>({i:a.i,j:a.j}));state.lastCalc={type:"interior",method:"单点代入",i,j,...c}}
-  return c.value
-}function jacobiStep(){
-  const old=new Map(state.values),neu=new Map(state.values);
-  for(const k of state.interiorSet){const[i,j]=parseKey(k),c=pointFormula(i,j,old);neu.set(k,c.value);state.solvedSet.add(k)}
-  state.values=neu
-}
-function gaussStep(){
-  for(const k of state.interiorSet){const[i,j]=parseKey(k),c=pointFormula(i,j);state.values.set(k,c.value);state.solvedSet.add(k)}
-}
-function sorStep(w){
-  for(const k of state.interiorSet){const[i,j]=parseKey(k),old=state.values.get(k)||0,c=pointFormula(i,j);state.values.set(k,old+w*(c.value-old));state.solvedSet.add(k)}
-}function autoSolve(){const n=Math.max(1,+$("#iterations").value||60),m=$("#method").value,w=+$("#omega").value||1.2;for(let s=0;s<n;s++){if(m==="jacobi")jacobiStep();else if(m==="sor")sorStep(w);else gaussStep()}const first=Array.from(state.interiorSet)[0];if(first){const[i,j]=parseKey(first);calculateInteriorPoint(i,j,true);state.lastCalc.method=getMethodName()}render()}function newGrid(){state.nx=clamp(+$("#nx").value||5,3,12);state.ny=clamp(+$("#ny").value||4,2,12);state.hx=+(""+$("#hx").value)||1;state.hy=+(""+$("#hy").value)||1;state.xOrigin=+(""+$("#xOrigin").value)||0;state.yOrigin=+(""+$("#yOrigin").value)||0;state.vertices=[];state.closed=false;state.boundarySet.clear();state.activeSet.clear();state.interiorSet.clear();state.outsideSet.clear();state.values.clear();state.solvedSet.clear();state.selected=null;state.neighbors=[];state.lastCalc=null;rebuildSets();setMode("draw");render()}function resetAll(){newGrid()}function render(){renderGrid();renderHeatMap();renderFormula()}function addSvgText(x,y,text,o={}){const t=document.createElementNS("http://www.w3.org/2000/svg","text");t.setAttribute("x",x);t.setAttribute("y",y);t.setAttribute("text-anchor",o.anchor||"middle");t.setAttribute("fill",o.fill||"#111827");t.setAttribute("font-size",o.size||"12");t.setAttribute("font-weight",o.weight||"900");t.textContent=text;svg.appendChild(t)}function addBoundaryValueLabel(i,j,value){const label=fmt(value,2),width=Math.max(32,label.length*8+14),height=20;let x=clamp(px(i)+12,4,900-width-4),y=clamp(py(j)-28,4,460-height-4);const g=document.createElementNS("http://www.w3.org/2000/svg","g");g.setAttribute("class","boundary-value-label");const r=document.createElementNS("http://www.w3.org/2000/svg","rect");r.setAttribute("x",x);r.setAttribute("y",y);r.setAttribute("width",width);r.setAttribute("height",height);const t=document.createElementNS("http://www.w3.org/2000/svg","text");t.setAttribute("x",x+width/2);t.setAttribute("y",y+14);t.setAttribute("text-anchor","middle");t.textContent=label;g.appendChild(r);g.appendChild(t);svg.appendChild(g)}function renderGrid(){svg.innerHTML="";for(let i=0;i<=state.nx;i++){const l=document.createElementNS("http://www.w3.org/2000/svg","line");l.setAttribute("x1",px(i));l.setAttribute("y1",py(0));l.setAttribute("x2",px(i));l.setAttribute("y2",py(state.ny));l.setAttribute("class",i===0?"axis-line":"grid-line");svg.appendChild(l)}for(let j=0;j<=state.ny;j++){const l=document.createElementNS("http://www.w3.org/2000/svg","line");l.setAttribute("x1",px(0));l.setAttribute("y1",py(j));l.setAttribute("x2",px(state.nx));l.setAttribute("y2",py(j));l.setAttribute("class",j===0?"axis-line":"grid-line");svg.appendChild(l)}for(let i=0;i<=state.nx;i++)addSvgText(px(i),py(0)+31,i,{fill:"#64748b"});for(let j=0;j<=state.ny;j++)addSvgText(px(0)-26,py(j)+4,j,{fill:"#64748b"});if(state.selected&&state.neighbors.length)for(const nb of state.neighbors){const l=document.createElementNS("http://www.w3.org/2000/svg","line");l.setAttribute("x1",px(state.selected.i));l.setAttribute("y1",py(state.selected.j));l.setAttribute("x2",px(nb.i));l.setAttribute("y2",py(nb.j));l.setAttribute("class","dependency-line");svg.appendChild(l)}if(state.vertices.length>=2){const pts=state.vertices.map(v=>`${px(v.i)},${py(v.j)}`).join(" ");const poly=document.createElementNS("http://www.w3.org/2000/svg",state.closed?"polygon":"polyline");poly.setAttribute("points",pts);poly.setAttribute("class",state.closed?"boundary-line":"preview-line");svg.appendChild(poly)}for(let j=0;j<=state.ny;j++)for(let i=0;i<=state.nx;i++){const k=key(i,j),g=document.createElementNS("http://www.w3.org/2000/svg","g");let cls="candidate";if(state.closed){if(state.boundarySet.has(k))cls="boundary";else if(state.interiorSet.has(k))cls=state.solvedSet.has(k)?"solved":"interior";else cls="outside"}else cls=state.boundarySet.has(k)?"vertex":"candidate";if(state.selected&&state.selected.i===i&&state.selected.j===j)cls+=" selected";else if(state.neighbors.some(n=>n.i===i&&n.j===j))cls+=" neighbor";g.setAttribute("class","node "+cls);const c=document.createElementNS("http://www.w3.org/2000/svg","circle");c.setAttribute("cx",px(i));c.setAttribute("cy",py(j));c.setAttribute("r",state.closed?15:10);const t=document.createElementNS("http://www.w3.org/2000/svg","text");t.setAttribute("x",px(i));t.setAttribute("y",py(j)+4);t.setAttribute("text-anchor","middle");if(state.interiorSet.has(k)&&state.solvedSet.has(k))t.textContent=fmt(state.values.get(k),1);g.appendChild(c);g.appendChild(t);g.addEventListener("click",()=>handlePointClick(i,j));svg.appendChild(g)}for(const k of state.boundarySet)if(state.values.has(k)){const[i,j]=parseKey(k);addBoundaryValueLabel(i,j,state.values.get(k))}}function colorForValue(v,min,max){if(!Number.isFinite(v))return[226,232,240];if(Math.abs(max-min)<1e-12)return[248,250,252];const mid=(max+min)/2,scale=Math.max(Math.abs(max-mid),Math.abs(min-mid))||1,z=clamp((v-mid)/scale,-1,1);return z>0?[255,Math.round(245-105*z),Math.round(230-175*z)]:z<0?[Math.round(230+120*z),Math.round(240+75*z),255]:[248,250,252]}function renderHeatMap(){const W=canvas.width,H=canvas.height;ctx.clearRect(0,0,W,H);ctx.fillStyle="#f8fafc";ctx.fillRect(0,0,W,H);const vals=Array.from(state.values.values()).filter(Number.isFinite),min=vals.length?Math.min(...vals):0,max=vals.length?Math.max(...vals):1,pad=28,cw=(W-pad*2)/state.nx,ch=(H-pad*2)/state.ny,cx=i=>pad+i*cw,cy=j=>H-pad-j*ch;for(let j=0;j<state.ny;j++)for(let i=0;i<state.nx;i++){ctx.fillStyle="rgba(226,232,240,.42)";ctx.fillRect(cx(i),cy(j+1),cw,ch)}for(const k of state.activeSet){const[i,j]=parseKey(k),ok=(state.boundarySet.has(k)&&state.values.has(k))||(state.interiorSet.has(k)&&state.solvedSet.has(k));if(!ok)continue;const[r,g,b]=colorForValue(state.values.get(k),min,max),x0=cx(Math.max(0,i-.5)),y0=cy(Math.min(state.ny,j+.5)),x1=cx(Math.min(state.nx,i+.5)),y1=cy(Math.max(0,j-.5));ctx.fillStyle=`rgb(${r},${g},${b})`;ctx.fillRect(x0,y0,x1-x0,y1-y0)}ctx.save();ctx.strokeStyle="rgba(255,255,255,.86)";ctx.lineWidth=1;for(let i=0;i<=state.nx;i++){ctx.beginPath();ctx.moveTo(cx(i),pad);ctx.lineTo(cx(i),H-pad);ctx.stroke()}for(let j=0;j<=state.ny;j++){ctx.beginPath();ctx.moveTo(pad,cy(j));ctx.lineTo(W-pad,cy(j));ctx.stroke()}ctx.restore();if(state.vertices.length>=2){ctx.save();ctx.strokeStyle="#111827";ctx.lineWidth=4;ctx.lineJoin="round";ctx.lineCap="round";ctx.beginPath();state.vertices.forEach((v,idx)=>{const x=cx(v.i),y=cy(v.j);idx===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});if(state.closed)ctx.closePath();ctx.stroke();ctx.restore()}}function mathVar(base,sub=""){return sub?`<span class="math-i">${base}</span><span class="math-sub">${sub}</span>`:`<span class="math-i">${base}</span>`}function frac(top,bottom){return`<span class="frac"><span class="top">${top}</span><span class="bottom">${bottom}</span></span>`}function renderRuleBox(){const source=($("#source").value||"0").trim(),lap=source==="0";const hx=fmt(state.hx||1,3),hy=fmt(state.hy||1,3);$("#ruleBox").innerHTML=`<div class="eq-wrap"><div class="eq-head"><span class="eq-chip">${lap?"Laplace":"Poisson"}</span><span class="eq-chip gray">二维五点差分</span></div><div class="equation"><div class="math-line">${frac(`${mathVar("u","R")}-2${mathVar("u","c")}+${mathVar("u","L")}`,`h_x^2`)} + ${frac(`${mathVar("u","U")}-2${mathVar("u","c")}+${mathVar("u","D")}`,`h_y^2`)} = f(x,y)</div><div class="math-line">${mathVar("u","c")} = ${frac(`(u_L+u_R)/h_x^2 + (u_U+u_D)/h_y^2 - f`,`2/h_x^2 + 2/h_y^2`)}</div></div><div class="formula-note">当前：<b>hx=${hx}</b>，<b>hy=${hy}</b>，源项：<b>${source}</b>。</div></div>`}
-function renderSubBox(){if(!state.lastCalc){$("#subBox").innerHTML='<div class="empty-sub">—</div>';return}const c=state.lastCalc;if(c.type==="boundary"){$("#subBox").innerHTML=`<div class="eq-wrap"><div class="eq-head"><span class="eq-chip gray">边界条件</span></div><div class="equation"><div class="equation-steps"><div class="eq-row"><div class="eq-left">u(${c.i}, ${c.j})</div><div class="eq-sign">=</div><div class="eq-right">${fmt(c.value,6)}</div></div></div></div><div class="formula-note">该点是边界点，数值直接给定。</div></div>`;return}$("#subBox").innerHTML=`<div class="eq-wrap"><div class="eq-head"><span class="eq-chip">${c.method||"单点代入"}</span><span class="eq-chip gray">点 (${c.i}, ${c.j})</span></div><div class="equation"><div class="equation-steps"><div class="eq-row"><div class="eq-left">x,y</div><div class="eq-sign">=</div><div class="eq-right">(${fmt(c.x,4)}, ${fmt(c.y,4)})</div></div><div class="eq-row"><div class="eq-left">u(${c.i}, ${c.j})</div><div class="eq-sign">=</div><div class="eq-right">${frac(`(${fmt(c.L,4)}+${fmt(c.R,4)})/${fmt(c.hx,4)}² + (${fmt(c.U,4)}+${fmt(c.D,4)})/${fmt(c.hy,4)}² - ${fmt(c.fVal,4)}`,`2/${fmt(c.hx,4)}² + 2/${fmt(c.hy,4)}²`)}</div></div><div class="eq-row"><div class="eq-left"></div><div class="eq-sign">=</div><div class="eq-right">${fmt(c.value,6)}</div></div></div></div><table class="math-table"><tr><td>左邻点</td><td>${fmt(c.L,6)}</td></tr><tr><td>右邻点</td><td>${fmt(c.R,6)}</td></tr><tr><td>上邻点</td><td>${fmt(c.U,6)}</td></tr><tr><td>下邻点</td><td>${fmt(c.D,6)}</td></tr><tr><td>源项 f</td><td>${fmt(c.fVal,6)}</td></tr><tr><td>结果</td><td>${fmt(c.value,6)}</td></tr></table></div>`}function renderFormula(){renderRuleBox();renderSubBox()}
-function setField(id,val){const el=$("#"+id);if(el)el.value=val}
-function markBoundary(i,j,v){const k=key(i,j);state.boundarySet.add(k);state.activeSet.add(k);state.interiorSet.delete(k);state.outsideSet.delete(k);state.values.set(k,v);state.solvedSet.add(k)}
-function markSegment(a,b,v){const [i0,j0]=a,[i1,j1]=b;const di=Math.sign(i1-i0),dj=Math.sign(j1-j0);let i=i0,j=j0;markBoundary(i,j,v);while(i!==i1||j!==j1){if(i!==i1)i+=di;if(j!==j1)j+=dj;markBoundary(i,j,v)}}
-function clearAndApplyBase(p){setField("nx",p.nx);setField("ny",p.ny);setField("hx",p.hx);setField("hy",p.hy);setField("xOrigin",p.xOrigin||0);setField("yOrigin",p.yOrigin||0);setField("source",p.source);setField("iterations",p.iterations||3);setField("method",p.method||"gauss");updateMethodUI();state.nx=p.nx;state.ny=p.ny;state.hx=p.hx;state.hy=p.hy;state.xOrigin=p.xOrigin||0;state.yOrigin=p.yOrigin||0;state.vertices=p.vertices.map(([i,j])=>({i,j}));state.closed=true;state.values.clear();state.solvedSet.clear();state.selected=null;state.neighbors=[];state.lastCalc=null;rebuildSets();}
-function fillInteriorGuess(v){for(const k of state.interiorSet){if(!state.values.has(k))state.values.set(k,v)}}
-function applyPreset(name){
-  const presets={
-    p2017:{nx:3,ny:4,hx:2,hy:1,xOrigin:0,yOrigin:0,source:"x+y",iterations:3,method:"gauss",guess:80,vertices:[[0,0],[3,0],[3,2],[2,2],[2,4],[0,4]],segments:[[[0,0],[3,0],100],[[3,0],[3,2],80],[[3,2],[2,2],80],[[2,2],[2,4],80],[[2,4],[0,4],60],[[0,4],[0,0],90]]},
-    p2018:{nx:4,ny:4,hx:1,hy:1,xOrigin:0,yOrigin:0,source:"10*x*y",iterations:3,method:"jacobi",guess:1,vertices:[[0,2],[2,4],[4,2],[2,0]],segments:[[[0,2],[2,4],1],[[2,4],[4,2],1],[[4,2],[2,0],1],[[2,0],[0,2],1]],extra:[[[1,2],10],[[2,1],10]]},
-    p2019:{nx:6,ny:4,hx:2,hy:1,xOrigin:-6,yOrigin:-2,source:"2*(x^3+y^3)",iterations:3,method:"jacobi",guess:20,vertices:[[0,1],[0,3],[2,3],[2,4],[4,4],[4,3],[6,3],[6,1],[4,1],[4,0],[2,0],[2,1]],segments:[[[0,1],[2,1],10],[[2,1],[2,0],10],[[2,0],[4,0],10],[[4,0],[4,1],10],[[4,1],[6,1],10],[[6,1],[6,3],20],[[6,3],[4,3],30],[[4,3],[4,4],30],[[4,4],[2,4],30],[[2,4],[2,3],30],[[2,3],[0,3],30],[[0,3],[0,1],20]]},
-    p2024:{nx:3,ny:4,hx:1,hy:1,xOrigin:0,yOrigin:0,source:"(x+y)^2",iterations:3,method:"jacobi",guess:2,vertices:[[2,0],[3,0],[3,2],[2,3],[1,4],[0,3],[0,2],[1,1]],segments:[[[1,4],[2,3],1],[[2,3],[3,2],1],[[3,2],[3,0],1],[[0,2],[0,3],3],[[0,3],[1,4],3],[[3,0],[2,0],3],[[2,0],[1,1],3],[[1,1],[0,2],3]]},
-    p2025:{nx:4,ny:2,hx:0.5,hy:0.5,xOrigin:0,yOrigin:0,source:"(x+y)*exp(x*y)",iterations:3,method:"gauss",guess:1.6,vertices:[[0,0],[4,0],[4,2],[0,2]],segments:[]}
-  };
-  const p=presets[name];if(!p)return;clearAndApplyBase(p);
-  if(p.segments)for(const [a,b,v] of p.segments)markSegment(a,b,v);
-  if(p.extra)for(const [[i,j],v] of p.extra)markBoundary(i,j,v);
-  if(name==="p2025"){
-    for(let j=0;j<=state.ny;j++){const y=coord(0,j).y;markBoundary(0,j,1);markBoundary(4,j,Math.exp(2*y))}
-    for(let i=0;i<=state.nx;i++){const x=coord(i,0).x;markBoundary(i,0,1);markBoundary(i,2,Math.exp(x))}
-  }
-  fillInteriorGuess(p.guess);
-  setMode("solve");render();
-}
-$$('.mode-btn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));$("#newGrid").addEventListener("click",newGrid);$("#autoSolve").addEventListener("click",autoSolve);$("#resetAll").addEventListener("click",resetAll);$("#method").addEventListener("change",()=>{updateMethodUI();render()});$("#source").addEventListener("input",renderFormula);$$(".preset-btn").forEach(b=>b.addEventListener("click",()=>applyPreset(b.dataset.preset)));updateMethodUI();applyPreset("p2025");
-</script></body></html>
+    const key = (i, j) => `${i},${j}`;
+    const parseKey = k => k.split(",").map(Number);
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+    function fmt(n, d = 4) {
+      if (n == null || Number.isNaN(n) || !Number.isFinite(n)) return "?";
+      return Number(n).toFixed(d).replace(/\.?0+$/, "");
+    }
+
+    function compileExpr(expr, names) {
+      const safe = String(expr || "0")
+        .replace(/\bpi\b/gi, "Math.PI")
+        .replace(/\be\b/g, "Math.E")
+        .replace(/\bsin\b/g, "Math.sin")
+        .replace(/\bcos\b/g, "Math.cos")
+        .replace(/\btan\b/g, "Math.tan")
+        .replace(/\bexp\b/g, "Math.exp")
+        .replace(/\blog\b/g, "Math.log")
+        .replace(/\bsqrt\b/g, "Math.sqrt")
+        .replace(/\babs\b/g, "Math.abs")
+        .replace(/\bpow\b/g, "Math.pow")
+        .replace(/\^/g, "**");
+
+      try {
+        return new Function(...names, `"use strict"; return (${safe});`);
+      } catch {
+        return () => 0;
+      }
+    }
+
+    function evalExpr(expr, vars) {
+      try {
+        const fn = compileExpr(expr, Object.keys(vars));
+        const v = fn(...Object.values(vars));
+        return Number.isFinite(v) ? Number(v) : 0;
+      } catch {
+        return 0;
+      }
+    }
+
+    function px(i) {
+      const p = 70;
+      const w = 900 - p * 2;
+      return p + (i / state.nx) * w;
+    }
+
+    function py(j) {
+      const p = 55;
+      const h = 460 - p * 2;
+      return 460 - p - (j / state.ny) * h;
+    }
+
+    function coord(i, j) {
+      return {
+        x: state.xOrigin + i * state.hx,
+        y: state.yOrigin + j * state.hy
+      };
+    }
+
+    function updateMethodUI() {
+      $("#omegaWrap").style.display = $("#method").value === "sor" ? "grid" : "none";
+    }
+
+    function getMethodName() {
+      const v = $("#method").value;
+      if (v === "jacobi") return "Jacobi";
+      if (v === "sor") return "SOR";
+      return "Gauss-Seidel";
+    }
+
+    function updateStepText() {
+      const m = state.mode;
+
+      if (m === "draw") {
+        $("#modeHint").textContent = "画边界";
+        $("#canvasTip").textContent = "";
+      }
+
+      if (m === "set") {
+        $("#modeHint").textContent = "设置边界值";
+        $("#canvasTip").textContent = "";
+      }
+
+      if (m === "solve") {
+        $("#modeHint").textContent = "点选求解";
+        $("#canvasTip").textContent = "";
+      }
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      $$(".mode-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
+      updateStepText();
+      render();
+    }
+
+    function pointInPolygon(x, y, poly) {
+      let inside = false;
+
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i].i;
+        const yi = poly[i].j;
+        const xj = poly[j].i;
+        const yj = poly[j].j;
+
+        const hit =
+          (yi > y) !== (yj > y) &&
+          x < ((xj - xi) * (y - yi)) / ((yj - yi) || 1e-12) + xi;
+
+        if (hit) inside = !inside;
+      }
+
+      return inside;
+    }
+
+    function rebuildSets() {
+      state.boundarySet.clear();
+      state.activeSet.clear();
+      state.interiorSet.clear();
+      state.outsideSet.clear();
+
+      function add(i, j) {
+        const k = key(i, j);
+        state.boundarySet.add(k);
+        state.activeSet.add(k);
+      }
+
+      for (const v of state.vertices) add(v.i, v.j);
+
+      if (state.vertices.length >= 2) {
+        const seg = [];
+
+        for (let a = 0; a < state.vertices.length - 1; a++) {
+          seg.push([state.vertices[a], state.vertices[a + 1]]);
+        }
+
+        if (state.closed) {
+          seg.push([state.vertices[state.vertices.length - 1], state.vertices[0]]);
+        }
+
+        for (const [p0, p1] of seg) {
+          if (p0.i === p1.i) {
+            for (let j = Math.min(p0.j, p1.j); j <= Math.max(p0.j, p1.j); j++) {
+              add(p0.i, j);
+            }
+          } else if (p0.j === p1.j) {
+            for (let i = Math.min(p0.i, p1.i); i <= Math.max(p0.i, p1.i); i++) {
+              add(i, p0.j);
+            }
+          } else {
+            add(p0.i, p0.j);
+            add(p1.i, p1.j);
+          }
+        }
+      }
+
+      if (!state.closed) {
+        for (let j = 0; j <= state.ny; j++) {
+          for (let i = 0; i <= state.nx; i++) {
+            const k = key(i, j);
+            if (!state.boundarySet.has(k)) state.outsideSet.add(k);
+          }
+        }
+
+        return;
+      }
+
+      for (let j = 0; j <= state.ny; j++) {
+        for (let i = 0; i <= state.nx; i++) {
+          const k = key(i, j);
+
+          if (state.boundarySet.has(k)) continue;
+
+          if (pointInPolygon(i, j, state.vertices)) {
+            state.interiorSet.add(k);
+            state.activeSet.add(k);
+
+            if (!state.values.has(k)) state.values.set(k, 0);
+          } else {
+            state.outsideSet.add(k);
+          }
+        }
+      }
+    }
+
+    function handlePointClick(i, j) {
+      if (state.mode === "draw") handleDrawClick(i, j);
+      if (state.mode === "set") handleSetClick(i, j);
+      if (state.mode === "solve") handleSolveClick(i, j);
+    }
+
+    function handleDrawClick(i, j) {
+      if (state.closed) return;
+
+      if (state.vertices.length >= 3) {
+        const f = state.vertices[0];
+
+        if (f.i === i && f.j === j) {
+          state.closed = true;
+          rebuildSets();
+          render();
+          return;
+        }
+      }
+
+      const last = state.vertices[state.vertices.length - 1];
+
+      if (last && last.i === i && last.j === j) return;
+
+      state.vertices.push({ i, j });
+      rebuildSets();
+      render();
+    }
+
+    function handleSetClick(i, j) {
+      const k = key(i, j);
+
+      if (!state.boundarySet.has(k)) return;
+
+      const old = state.values.has(k) ? state.values.get(k) : "";
+      const input = prompt(`请输入边界点 (${i}, ${j}) 的边界值`, old);
+
+      if (input === null) return;
+
+      const value = evalExpr(input, coord(i, j));
+
+      state.values.set(k, value);
+      state.solvedSet.add(k);
+      state.selected = { i, j };
+      state.neighbors = [];
+      state.lastCalc = {
+        type: "boundary",
+        i,
+        j,
+        ...coord(i, j),
+        value
+      };
+
+      render();
+    }
+
+    function handleSolveClick(i, j) {
+      const k = key(i, j);
+
+      if (!state.interiorSet.has(k)) return;
+
+      calculateInteriorPoint(i, j, true);
+      render();
+    }
+
+    function nearestBoundaryValue(i, j) {
+      let best = null;
+      let bestD = Infinity;
+
+      for (const k of state.boundarySet) {
+        if (!state.values.has(k)) continue;
+
+        const [bi, bj] = parseKey(k);
+        const d = (bi - i) ** 2 + (bj - j) ** 2;
+
+        if (d < bestD) {
+          bestD = d;
+          best = state.values.get(k);
+        }
+      }
+
+      return best === null ? 0 : best;
+    }
+
+    function getNeighborValue(i, j) {
+      const k = key(i, j);
+      return state.values.has(k) ? state.values.get(k) : nearestBoundaryValue(i, j);
+    }
+
+    function getNeighborInfo(i, j) {
+      return [
+        { name: "左", i: i - 1, j },
+        { name: "右", i: i + 1, j },
+        { name: "上", i, j: j + 1 },
+        { name: "下", i, j: j - 1 }
+      ].map(d => {
+        const k = key(d.i, d.j);
+
+        return {
+          ...d,
+          value: state.values.has(k) ? state.values.get(k) : nearestBoundaryValue(d.i, d.j)
+        };
+      });
+    }
+
+    function pointFormula(i, j, fromMap = null) {
+      const { x, y } = coord(i, j);
+      const fVal = evalExpr($("#source").value, { x, y });
+
+      const hx = state.hx || 1;
+      const hy = state.hy || 1;
+      const ax = 1 / (hx * hx);
+      const ay = 1 / (hy * hy);
+      const den = 2 * ax + 2 * ay;
+
+      function valAt(a, b) {
+        const kk = key(a, b);
+
+        if (fromMap && fromMap.has(kk)) return fromMap.get(kk);
+
+        return getNeighborValue(a, b);
+      }
+
+      const L = valAt(i - 1, j);
+      const R = valAt(i + 1, j);
+      const U = valAt(i, j + 1);
+      const D = valAt(i, j - 1);
+      const numerator = ax * (L + R) + ay * (U + D) - fVal;
+      const value = numerator / den;
+
+      return {
+        x,
+        y,
+        fVal,
+        hx,
+        hy,
+        ax,
+        ay,
+        den,
+        numerator,
+        L,
+        R,
+        U,
+        D,
+        value
+      };
+    }
+
+    function calculateInteriorPoint(i, j, mark = false) {
+      const k = key(i, j);
+      const c = pointFormula(i, j);
+
+      state.values.set(k, c.value);
+      state.solvedSet.add(k);
+
+      if (mark) {
+        state.selected = { i, j };
+        state.neighbors = getNeighborInfo(i, j).map(a => ({ i: a.i, j: a.j }));
+        state.lastCalc = {
+          type: "interior",
+          method: "单点代入",
+          i,
+          j,
+          ...c
+        };
+      }
+
+      return c.value;
+    }
+
+    function jacobiStep() {
+      const old = new Map(state.values);
+      const neu = new Map(state.values);
+
+      for (const k of state.interiorSet) {
+        const [i, j] = parseKey(k);
+        const c = pointFormula(i, j, old);
+
+        neu.set(k, c.value);
+        state.solvedSet.add(k);
+      }
+
+      state.values = neu;
+    }
+
+    function gaussStep() {
+      for (const k of state.interiorSet) {
+        const [i, j] = parseKey(k);
+        const c = pointFormula(i, j);
+
+        state.values.set(k, c.value);
+        state.solvedSet.add(k);
+      }
+    }
+
+    function sorStep(w) {
+      for (const k of state.interiorSet) {
+        const [i, j] = parseKey(k);
+        const old = state.values.get(k) || 0;
+        const c = pointFormula(i, j);
+
+        state.values.set(k, old + w * (c.value - old));
+        state.solvedSet.add(k);
+      }
+    }
+
+    function autoSolve() {
+      const n = Math.max(1, +$("#iterations").value || 60);
+      const m = $("#method").value;
+      const w = +$("#omega").value || 1.2;
+
+      for (let s = 0; s < n; s++) {
+        if (m === "jacobi") jacobiStep();
+        else if (m === "sor") sorStep(w);
+        else gaussStep();
+      }
+
+      const first = Array.from(state.interiorSet)[0];
+
+      if (first) {
+        const [i, j] = parseKey(first);
+
+        calculateInteriorPoint(i, j, true);
+        state.lastCalc.method = getMethodName();
+      }
+
+      render();
+    }
+
+    function newGrid() {
+      state.nx = clamp(+$("#nx").value || 5, 3, 12);
+      state.ny = clamp(+$("#ny").value || 4, 2, 12);
+      state.hx = +$("#hx").value || 1;
+      state.hy = +$("#hy").value || 1;
+      state.xOrigin = +$("#xOrigin").value || 0;
+      state.yOrigin = +$("#yOrigin").value || 0;
+
+      state.vertices = [];
+      state.closed = false;
+      state.boundarySet.clear();
+      state.activeSet.clear();
+      state.interiorSet.clear();
+      state.outsideSet.clear();
+      state.values.clear();
+      state.solvedSet.clear();
+      state.selected = null;
+      state.neighbors = [];
+      state.lastCalc = null;
+
+      rebuildSets();
+      setMode("draw");
+      render();
+    }
+
+    function resetAll() {
+      newGrid();
+    }
+
+    function render() {
+      renderGrid();
+      renderHeatMap();
+      renderFormula();
+    }
+
+    function addSvgText(x, y, text, o = {}) {
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+
+      t.setAttribute("x", x);
+      t.setAttribute("y", y);
+      t.setAttribute("text-anchor", o.anchor || "middle");
+      t.setAttribute("fill", o.fill || "#111827");
+      t.setAttribute("font-size", o.size || "12");
+      t.setAttribute("font-weight", o.weight || "900");
+      t.textContent = text;
+
+      svg.appendChild(t);
+    }
+
+    function addBoundaryValueLabel(i, j, value) {
+      const label = fmt(value, 2);
+      const width = Math.max(32, label.length * 8 + 14);
+      const height = 20;
+
+      let x = clamp(px(i) + 12, 4, 900 - width - 4);
+      let y = clamp(py(j) - 28, 4, 460 - height - 4);
+
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", "boundary-value-label");
+
+      const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      r.setAttribute("x", x);
+      r.setAttribute("y", y);
+      r.setAttribute("width", width);
+      r.setAttribute("height", height);
+
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", x + width / 2);
+      t.setAttribute("y", y + 14);
+      t.setAttribute("text-anchor", "middle");
+      t.textContent = label;
+
+      g.appendChild(r);
+      g.appendChild(t);
+      svg.appendChild(g);
+    }
+
+    function renderGrid() {
+      svg.innerHTML = "";
+
+      for (let i = 0; i <= state.nx; i++) {
+        const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+
+        l.setAttribute("x1", px(i));
+        l.setAttribute("y1", py(0));
+        l.setAttribute("x2", px(i));
+        l.setAttribute("y2", py(state.ny));
+        l.setAttribute("class", i === 0 ? "axis-line" : "grid-line");
+
+        svg.appendChild(l);
+      }
+
+      for (let j = 0; j <= state.ny; j++) {
+        const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+
+        l.setAttribute("x1", px(0));
+        l.setAttribute("y1", py(j));
+        l.setAttribute("x2", px(state.nx));
+        l.setAttribute("y2", py(j));
+        l.setAttribute("class", j === 0 ? "axis-line" : "grid-line");
+
+        svg.appendChild(l);
+      }
+
+      for (let i = 0; i <= state.nx; i++) {
+        addSvgText(px(i), py(0) + 31, i, { fill: "#64748b" });
+      }
+
+      for (let j = 0; j <= state.ny; j++) {
+        addSvgText(px(0) - 26, py(j) + 4, j, { fill: "#64748b" });
+      }
+
+      if (state.selected && state.neighbors.length) {
+        for (const nb of state.neighbors) {
+          const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+
+          l.setAttribute("x1", px(state.selected.i));
+          l.setAttribute("y1", py(state.selected.j));
+          l.setAttribute("x2", px(nb.i));
+          l.setAttribute("y2", py(nb.j));
+          l.setAttribute("class", "dependency-line");
+
+          svg.appendChild(l);
+        }
+      }
+
+      if (state.vertices.length >= 2) {
+        const pts = state.vertices.map(v => `${px(v.i)},${py(v.j)}`).join(" ");
+        const poly = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          state.closed ? "polygon" : "polyline"
+        );
+
+        poly.setAttribute("points", pts);
+        poly.setAttribute("class", state.closed ? "boundary-line" : "preview-line");
+
+        svg.appendChild(poly);
+      }
+
+      for (let j = 0; j <= state.ny; j++) {
+        for (let i = 0; i <= state.nx; i++) {
+          const k = key(i, j);
+          const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+          let cls = "candidate";
+
+          if (state.closed) {
+            if (state.boundarySet.has(k)) cls = "boundary";
+            else if (state.interiorSet.has(k)) cls = state.solvedSet.has(k) ? "solved" : "interior";
+            else cls = "outside";
+          } else {
+            cls = state.boundarySet.has(k) ? "vertex" : "candidate";
+          }
+
+          if (state.selected && state.selected.i === i && state.selected.j === j) {
+            cls += " selected";
+          } else if (state.neighbors.some(n => n.i === i && n.j === j)) {
+            cls += " neighbor";
+          }
+
+          g.setAttribute("class", "node " + cls);
+
+          const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          c.setAttribute("cx", px(i));
+          c.setAttribute("cy", py(j));
+          c.setAttribute("r", state.closed ? 15 : 10);
+
+          const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          t.setAttribute("x", px(i));
+          t.setAttribute("y", py(j) + 4);
+          t.setAttribute("text-anchor", "middle");
+
+          if (state.interiorSet.has(k) && state.solvedSet.has(k)) {
+            t.textContent = fmt(state.values.get(k), 1);
+          }
+
+          g.appendChild(c);
+          g.appendChild(t);
+          g.addEventListener("click", () => handlePointClick(i, j));
+
+          svg.appendChild(g);
+        }
+      }
+
+      for (const k of state.boundarySet) {
+        if (state.values.has(k)) {
+          const [i, j] = parseKey(k);
+          addBoundaryValueLabel(i, j, state.values.get(k));
+        }
+      }
+    }
+
+    function colorForValue(v, min, max) {
+      if (!Number.isFinite(v)) return [226, 232, 240];
+
+      if (Math.abs(max - min) < 1e-12) return [248, 250, 252];
+
+      const mid = (max + min) / 2;
+      const scale = Math.max(Math.abs(max - mid), Math.abs(min - mid)) || 1;
+      const z = clamp((v - mid) / scale, -1, 1);
+
+      if (z > 0) {
+        return [255, Math.round(245 - 105 * z), Math.round(230 - 175 * z)];
+      }
+
+      if (z < 0) {
+        return [Math.round(230 + 120 * z), Math.round(240 + 75 * z), 255];
+      }
+
+      return [248, 250, 252];
+    }
+
+    function renderHeatMap() {
+      const W = canvas.width;
+      const H = canvas.height;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(0, 0, W, H);
+
+      const vals = Array.from(state.values.values()).filter(Number.isFinite);
+      const min = vals.length ? Math.min(...vals) : 0;
+      const max = vals.length ? Math.max(...vals) : 1;
+      const pad = 28;
+      const cw = (W - pad * 2) / state.nx;
+      const ch = (H - pad * 2) / state.ny;
+      const cx = i => pad + i * cw;
+      const cy = j => H - pad - j * ch;
+
+      for (let j = 0; j < state.ny; j++) {
+        for (let i = 0; i < state.nx; i++) {
+          ctx.fillStyle = "rgba(226,232,240,.42)";
+          ctx.fillRect(cx(i), cy(j + 1), cw, ch);
+        }
+      }
+
+      for (const k of state.activeSet) {
+        const [i, j] = parseKey(k);
+
+        const ok =
+          (state.boundarySet.has(k) && state.values.has(k)) ||
+          (state.interiorSet.has(k) && state.solvedSet.has(k));
+
+        if (!ok) continue;
+
+        const [r, g, b] = colorForValue(state.values.get(k), min, max);
+        const x0 = cx(Math.max(0, i - 0.5));
+        const y0 = cy(Math.min(state.ny, j + 0.5));
+        const x1 = cx(Math.min(state.nx, i + 0.5));
+        const y1 = cy(Math.max(0, j - 0.5));
+
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+      }
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,255,255,.86)";
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i <= state.nx; i++) {
+        ctx.beginPath();
+        ctx.moveTo(cx(i), pad);
+        ctx.lineTo(cx(i), H - pad);
+        ctx.stroke();
+      }
+
+      for (let j = 0; j <= state.ny; j++) {
+        ctx.beginPath();
+        ctx.moveTo(pad, cy(j));
+        ctx.lineTo(W - pad, cy(j));
+        ctx.stroke();
+      }
+
+      ctx.restore();
+
+      if (state.vertices.length >= 2) {
+        ctx.save();
+        ctx.strokeStyle = "#111827";
+        ctx.lineWidth = 4;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+
+        state.vertices.forEach((v, idx) => {
+          const x = cx(v.i);
+          const y = cy(v.j);
+
+          if (idx === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+
+        if (state.closed) ctx.closePath();
+
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function mathVar(base, sub = "") {
+      if (!sub) return `<span class="math-i">${base}</span>`;
+      return `<span class="math-i">${base}</span><span class="sub">${sub}</span>`;
+    }
+
+    function sup(text) {
+      return `<span class="sup">${text}</span>`;
+    }
+
+    function frac(top, bottom) {
+      return `
+        <span class="frac">
+          <span class="top">${top}</span>
+          <span class="bottom">${bottom}</span>
+        </span>
+      `;
+    }
+
+    function renderRuleBox() {
+      const source = ($("#source").value || "0").trim();
+      const lap = source === "0";
+
+      $("#ruleBox").innerHTML = `
+        <div class="eq-wrap">
+          <div class="eq-head">
+            <span class="eq-chip">${lap ? "Laplace" : "Poisson"}</span>
+            <span class="eq-chip gray">二维五点差分</span>
+          </div>
+
+          <div class="formal-eq">
+            <div class="formal-line">
+              ${frac(
+                `${mathVar("u", "R")} − 2${mathVar("u", "c")} + ${mathVar("u", "L")}`,
+                `${mathVar("h", "x")}${sup("2")}`
+              )}
+              <span>+</span>
+              ${frac(
+                `${mathVar("u", "U")} − 2${mathVar("u", "c")} + ${mathVar("u", "D")}`,
+                `${mathVar("h", "y")}${sup("2")}`
+              )}
+              <span>=</span>
+              <span>${mathVar("f")}(x,y)</span>
+            </div>
+
+            <div class="formal-line small">
+              ${mathVar("u", "c")}
+              <span>=</span>
+              ${frac(
+                `${frac(`${mathVar("u", "L")} + ${mathVar("u", "R")}`, `${mathVar("h", "x")}${sup("2")}`)}
+                +
+                ${frac(`${mathVar("u", "U")} + ${mathVar("u", "D")}`, `${mathVar("h", "y")}${sup("2")}`)}
+                − ${mathVar("f")}(x,y)`,
+                `${frac("2", `${mathVar("h", "x")}${sup("2")}`)}
+                +
+                ${frac("2", `${mathVar("h", "y")}${sup("2")}`)}`
+              )}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSubBox() {
+      if (!state.lastCalc) {
+        $("#subBox").innerHTML = '<div class="empty-sub">—</div>';
+        return;
+      }
+
+      const c = state.lastCalc;
+
+      if (c.type === "boundary") {
+        $("#subBox").innerHTML = `
+          <div class="eq-wrap">
+            <div class="eq-head">
+              <span class="eq-chip gray">边界条件</span>
+            </div>
+
+            <div class="equation">
+              <div class="equation-steps">
+                <div class="eq-row">
+                  <div class="eq-left">u(${c.i}, ${c.j})</div>
+                  <div class="eq-sign">=</div>
+                  <div class="eq-right">${fmt(c.value, 6)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        return;
+      }
+
+      $("#subBox").innerHTML = `
+        <div class="eq-wrap">
+          <div class="eq-head">
+            <span class="eq-chip">${c.method || "单点代入"}</span>
+            <span class="eq-chip gray">点 (${c.i}, ${c.j})</span>
+          </div>
+
+          <div class="equation">
+            <div class="equation-steps">
+              <div class="eq-row">
+                <div class="eq-left">x,y</div>
+                <div class="eq-sign">=</div>
+                <div class="eq-right">(${fmt(c.x, 4)}, ${fmt(c.y, 4)})</div>
+              </div>
+
+              <div class="eq-row">
+                <div class="eq-left">u(${c.i}, ${c.j})</div>
+                <div class="eq-sign">=</div>
+                <div class="eq-right">
+                  ${frac(
+                    `${frac(`${fmt(c.L, 4)} + ${fmt(c.R, 4)}`, `${fmt(c.hx, 4)}${sup("2")}`)}
+                    +
+                    ${frac(`${fmt(c.U, 4)} + ${fmt(c.D, 4)}`, `${fmt(c.hy, 4)}${sup("2")}`)}
+                    − ${fmt(c.fVal, 4)}`,
+                    `${frac("2", `${fmt(c.hx, 4)}${sup("2")}`)}
+                    +
+                    ${frac("2", `${fmt(c.hy, 4)}${sup("2")}`)}`
+                  )}
+                </div>
+              </div>
+
+              <div class="eq-row">
+                <div class="eq-left"></div>
+                <div class="eq-sign">=</div>
+                <div class="eq-right">${fmt(c.value, 6)}</div>
+              </div>
+            </div>
+          </div>
+
+          <table class="math-table">
+            <tr><td>左邻点</td><td>${fmt(c.L, 6)}</td></tr>
+            <tr><td>右邻点</td><td>${fmt(c.R, 6)}</td></tr>
+            <tr><td>上邻点</td><td>${fmt(c.U, 6)}</td></tr>
+            <tr><td>下邻点</td><td>${fmt(c.D, 6)}</td></tr>
+            <tr><td>源项 f</td><td>${fmt(c.fVal, 6)}</td></tr>
+            <tr><td>结果</td><td>${fmt(c.value, 6)}</td></tr>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderFormula() {
+      renderRuleBox();
+      renderSubBox();
+    }
+
+    function setField(id, val) {
+      const el = $("#" + id);
+      if (el) el.value = val;
+    }
+
+    function markBoundary(i, j, v) {
+      const k = key(i, j);
+
+      state.boundarySet.add(k);
+      state.activeSet.add(k);
+      state.interiorSet.delete(k);
+      state.outsideSet.delete(k);
+      state.values.set(k, v);
+      state.solvedSet.add(k);
+    }
+
+    function markSegment(a, b, v) {
+      const [i0, j0] = a;
+      const [i1, j1] = b;
+      const di = Math.sign(i1 - i0);
+      const dj = Math.sign(j1 - j0);
+
+      let i = i0;
+      let j = j0;
+
+      markBoundary(i, j, v);
+
+      while (i !== i1 || j !== j1) {
+        if (i !== i1) i += di;
+        if (j !== j1) j += dj;
+
+        markBoundary(i, j, v);
+      }
+    }
+
+    function clearAndApplyBase(p) {
+      setField("nx", p.nx);
+      setField("ny", p.ny);
+      setField("hx", p.hx);
+      setField("hy", p.hy);
+      setField("xOrigin", p.xOrigin || 0);
+      setField("yOrigin", p.yOrigin || 0);
+      setField("source", p.source);
+      setField("iterations", p.iterations || 3);
+      setField("method", p.method || "gauss");
+
+      updateMethodUI();
+
+      state.nx = p.nx;
+      state.ny = p.ny;
+      state.hx = p.hx;
+      state.hy = p.hy;
+      state.xOrigin = p.xOrigin || 0;
+      state.yOrigin = p.yOrigin || 0;
+      state.vertices = p.vertices.map(([i, j]) => ({ i, j }));
+      state.closed = true;
+      state.values.clear();
+      state.solvedSet.clear();
+      state.selected = null;
+      state.neighbors = [];
+      state.lastCalc = null;
+
+      rebuildSets();
+    }
+
+    function fillInteriorGuess(v) {
+      for (const k of state.interiorSet) {
+        if (!state.values.has(k)) state.values.set(k, v);
+      }
+    }
+
+    function applyPreset(name) {
+      const presets = {
+        p2017: {
+          nx: 3,
+          ny: 4,
+          hx: 2,
+          hy: 1,
+          xOrigin: 0,
+          yOrigin: 0,
+          source: "x+y",
+          iterations: 3,
+          method: "gauss",
+          guess: 80,
+          vertices: [[0,0],[3,0],[3,2],[2,2],[2,4],[0,4]],
+          segments: [
+            [[0,0],[3,0],100],
+            [[3,0],[3,2],80],
+            [[3,2],[2,2],80],
+            [[2,2],[2,4],80],
+            [[2,4],[0,4],60],
+            [[0,4],[0,0],90]
+          ]
+        },
+
+        p2018: {
+          nx: 4,
+          ny: 4,
+          hx: 1,
+          hy: 1,
+          xOrigin: 0,
+          yOrigin: 0,
+          source: "10*x*y",
+          iterations: 3,
+          method: "jacobi",
+          guess: 1,
+          vertices: [[0,2],[2,4],[4,2],[2,0]],
+          segments: [
+            [[0,2],[2,4],1],
+            [[2,4],[4,2],1],
+            [[4,2],[2,0],1],
+            [[2,0],[0,2],1]
+          ],
+          extra: [
+            [[1,2],10],
+            [[2,1],10]
+          ]
+        },
+
+        p2019: {
+          nx: 6,
+          ny: 4,
+          hx: 2,
+          hy: 1,
+          xOrigin: -6,
+          yOrigin: -2,
+          source: "2*(x^3+y^3)",
+          iterations: 3,
+          method: "jacobi",
+          guess: 20,
+          vertices: [[0,1],[0,3],[2,3],[2,4],[4,4],[4,3],[6,3],[6,1],[4,1],[4,0],[2,0],[2,1]],
+          segments: [
+            [[0,1],[2,1],10],
+            [[2,1],[2,0],10],
+            [[2,0],[4,0],10],
+            [[4,0],[4,1],10],
+            [[4,1],[6,1],10],
+            [[6,1],[6,3],20],
+            [[6,3],[4,3],30],
+            [[4,3],[4,4],30],
+            [[4,4],[2,4],30],
+            [[2,4],[2,3],30],
+            [[2,3],[0,3],30],
+            [[0,3],[0,1],20]
+          ]
+        },
+
+        p2024: {
+          nx: 3,
+          ny: 4,
+          hx: 1,
+          hy: 1,
+          xOrigin: 0,
+          yOrigin: 0,
+          source: "(x+y)^2",
+          iterations: 3,
+          method: "jacobi",
+          guess: 2,
+          vertices: [[2,0],[3,0],[3,2],[2,3],[1,4],[0,3],[0,2],[1,1]],
+          segments: [
+            [[1,4],[2,3],1],
+            [[2,3],[3,2],1],
+            [[3,2],[3,0],1],
+            [[0,2],[0,3],3],
+            [[0,3],[1,4],3],
+            [[3,0],[2,0],3],
+            [[2,0],[1,1],3],
+            [[1,1],[0,2],3]
+          ]
+        },
+
+        p2025: {
+          nx: 4,
+          ny: 2,
+          hx: 0.5,
+          hy: 0.5,
+          xOrigin: 0,
+          yOrigin: 0,
+          source: "(x+y)*exp(x*y)",
+          iterations: 3,
+          method: "gauss",
+          guess: 1.6,
+          vertices: [[0,0],[4,0],[4,2],[0,2]],
+          segments: []
+        }
+      };
+
+      const p = presets[name];
+
+      if (!p) return;
+
+      clearAndApplyBase(p);
+
+      if (p.segments) {
+        for (const [a, b, v] of p.segments) {
+          markSegment(a, b, v);
+        }
+      }
+
+      if (p.extra) {
+        for (const [[i, j], v] of p.extra) {
+          markBoundary(i, j, v);
+        }
+      }
+
+      if (name === "p2025") {
+        for (let j = 0; j <= state.ny; j++) {
+          const y = coord(0, j).y;
+
+          markBoundary(0, j, 1);
+          markBoundary(4, j, Math.exp(2 * y));
+        }
+
+        for (let i = 0; i <= state.nx; i++) {
+          const x = coord(i, 0).x;
+
+          markBoundary(i, 0, 1);
+          markBoundary(i, 2, Math.exp(x));
+        }
+      }
+
+      fillInteriorGuess(p.guess);
+      setMode("solve");
+      render();
+    }
+
+    $$(".mode-btn").forEach(b => {
+      b.addEventListener("click", () => setMode(b.dataset.mode));
+    });
+
+    $("#newGrid").addEventListener("click", newGrid);
+    $("#autoSolve").addEventListener("click", autoSolve);
+    $("#resetAll").addEventListener("click", resetAll);
+
+    $("#method").addEventListener("change", () => {
+      updateMethodUI();
+      render();
+    });
+
+    $("#source").addEventListener("input", renderFormula);
+
+    $$(".preset-btn").forEach(b => {
+      b.addEventListener("click", () => applyPreset(b.dataset.preset));
+    });
+
+    updateMethodUI();
+    applyPreset("p2025");
+  </script>
+</body>
+</html>
