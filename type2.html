@@ -7,68 +7,20 @@
   <link rel="stylesheet" href="css/style.css" />
 
   <style>
-    .xt-wrap {
-      position: relative;
-      display: inline-block;
-      max-width: 100%;
-      overflow: hidden;
-      border-radius: 22px;
-    }
-
-    #linkLayer {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    #heatGrid {
-      position: relative;
-      z-index: 2;
-    }
-
-    .heat-cell.dep {
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22) inset;
-    }
-
-    .heat-cell.layer-active {
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22) inset;
-    }
-
-    .equation {
-      overflow-x: auto;
-    }
-
-    .math-line {
-      font-size: 22px;
-      line-height: 1.6;
-      white-space: nowrap;
-    }
-
-    .eq-row {
-      grid-template-columns: 90px 22px 1fr;
-    }
-
-    .eq-left,
-    .eq-sign,
-    .eq-right {
-      font-size: 20px;
-    }
-
-    .eq-right {
-      white-space: normal;
-      word-break: break-word;
-    }
-
-    .method-note {
-      margin-top: 8px;
-      color: #6b7280;
-      font-size: 12px;
-      line-height: 1.5;
-    }
+    .xt-wrap{position:relative;display:inline-block;max-width:100%;overflow:hidden;border-radius:22px}
+    #linkLayer{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:hidden}
+    #heatGrid{position:relative;z-index:2}
+    .heat-cell.dep{box-shadow:0 0 0 3px rgba(37,99,235,.22) inset}
+    .heat-cell.layer-active{box-shadow:0 0 0 3px rgba(245,158,11,.22) inset}
+    .equation{overflow-x:auto}
+    .math-line{font-size:20px;line-height:1.6;white-space:nowrap}
+    .eq-row{grid-template-columns:90px 22px 1fr}
+    .eq-left,.eq-sign,.eq-right{font-size:19px}
+    .eq-right{white-space:normal;word-break:break-word}
+    .method-note{margin-top:8px;color:#6b7280;font-size:12px;line-height:1.5}
+    .preset-row{display:grid;grid-template-columns:1fr;gap:8px}
+    .preset-btn{width:100%;justify-content:flex-start}
+    .formula-note code{background:#f1f5f9;border-radius:6px;padding:1px 5px}
   </style>
 </head>
 
@@ -78,7 +30,7 @@
       <a class="btn" href="index.html" style="text-decoration:none">← 返回主页</a>
       <div>
         <h1>题型 2：Heat Equation x-t Grid</h1>
-        <div class="subtitle">设置初始条件与边界条件，逐层推进，观察温度随时间变化。</div>
+        <div class="subtitle">支持普通热方程、径向一阶项、显式、隐式、Gauss-Seidel、Jacobi。</div>
       </div>
     </header>
 
@@ -86,26 +38,70 @@
       <div class="layout">
         <aside class="card panel">
           <div class="control-group">
-            <h3>1 · 网格与参数</h3>
+            <h3>0 · 快速填入往年题</h3>
+            <div class="preset-row">
+              <button class="btn preset-btn" data-preset="cylinder2019">2019 Q4：0.2≤r≤1，K=0.1，Δr=0.2</button>
+              <button class="btn preset-btn" data-preset="disk2022">2022 Q4：0.1≤r≤0.5，Δr=0.1</button>
+              <button class="btn preset-btn" data-preset="heat2023">2023 Q4：0≤x≤4，h=1</button>
+              <button class="btn preset-btn" data-preset="steady2016">2016 Q3：稳态 Laplace，0.5≤r≤1</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h3>1 · 操作步骤</h3>
+            <div class="segmented">
+              <button class="btn mode-btn" data-mode="set">① 修改已知值</button>
+              <button class="btn mode-btn active" data-mode="solve">② 点击未知点</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h3>2 · 网格与参数</h3>
 
             <div class="field-row">
               <div>
-                <label>x 节点数</label>
-                <input id="xNodes" type="number" min="4" max="12" value="6" />
+                <label>变量名</label>
+                <select id="varName">
+                  <option value="x">x</option>
+                  <option value="r">r</option>
+                </select>
               </div>
-
               <div>
-                <label>时间层数</label>
-                <input id="tSteps" type="number" min="3" max="10" value="6" />
+                <label>方程类型</label>
+                <select id="problemType">
+                  <option value="transient">Transient 非稳态</option>
+                  <option value="steady">Steady 稳态</option>
+                </select>
               </div>
             </div>
 
             <div class="field-row">
               <div>
-                <label>r = α Δt / Δx²</label>
-                <input id="rVal" type="number" step="0.05" value="0.25" />
+                <label>空间起点</label>
+                <input id="xMin" type="number" step="0.1" value="0" />
               </div>
+              <div>
+                <label>空间终点</label>
+                <input id="xMax" type="number" step="0.1" value="4" />
+              </div>
+            </div>
 
+            <div class="field-row">
+              <div>
+                <label>空间步长 Δx / Δr</label>
+                <input id="dxVal" type="number" step="0.1" value="1" />
+              </div>
+              <div>
+                <label>时间步长 Δt</label>
+                <input id="dtVal" type="number" step="0.1" value="0.4" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div>
+                <label>最大时间 tmax</label>
+                <input id="tMax" type="number" step="0.1" value="0.8" />
+              </div>
               <div>
                 <label>求解方式</label>
                 <select id="method">
@@ -117,61 +113,78 @@
               </div>
             </div>
 
-            <button class="btn dark" id="newGrid">生成 x-t 网格</button>
-            <div class="mini-note">显式法常用稳定条件：r ≤ 0.5。隐式法通常无条件稳定。</div>
+            <div class="field-row">
+              <div>
+                <label>迭代初始估计</label>
+                <input id="guessVal" type="number" step="0.1" value="0" />
+              </div>
+              <div>
+                <label>每层迭代次数</label>
+                <input id="iterPerLayer" type="number" min="1" value="2" />
+              </div>
+            </div>
+
+            <button class="btn dark" id="newGrid">生成网格</button>
+            <div class="mini-note">节点数由范围和步长自动计算，不需要手动填 x 节点数。</div>
           </div>
 
           <div class="control-group">
-            <h3>2 · 输入条件</h3>
+            <h3>3 · PDE 系数</h3>
+            <div class="field-row one">
+              <div>
+                <label>标准形式：Tt = A(s)Tss + B(s)Ts</label>
+                <input id="aExpr" value="0.5" />
+              </div>
+            </div>
+            <div class="field-row one">
+              <div>
+                <label>B(s)，可写 2、0、0.2/(pi*s)</label>
+                <input id="bExpr" value="0" />
+              </div>
+            </div>
+            <div class="mini-note">这里的 s 表示当前空间变量；也可以直接用 x 或 r。第一题需先整理成 Tt = A Trr + B T_r。</div>
+          </div>
+
+          <div class="control-group">
+            <h3>4 · 输入条件</h3>
 
             <div class="field-row">
               <div>
-                <label>左边界 u(0,t)</label>
+                <label>左边界 T(smin,t)</label>
                 <input id="leftB" value="0" />
               </div>
 
               <div>
-                <label>右边界 u(L,t)</label>
+                <label>右边界 T(smax,t)</label>
                 <input id="rightB" value="0" />
               </div>
             </div>
 
             <div class="field-row one">
               <div>
-                <label>初始条件 u(x,0)</label>
-                <input id="initExpr" value="0" />
+                <label>初始条件 T(s,0)</label>
+                <input id="initExpr" value="sin(pi*x/2)" />
               </div>
             </div>
 
             <button class="btn dark" id="applyConditions">应用条件</button>
-            <div class="mini-note">可用变量：x、t、n、N、pi、sin、cos、exp。</div>
+            <div class="mini-note">可用变量：s、x、r、t、n、N、pi、sin、cos、exp、sqrt、log、abs。</div>
           </div>
 
           <div class="control-group">
-            <h3>3 · 操作步骤</h3>
-
-            <div class="segmented">
-              <button class="btn mode-btn active" data-mode="set">① 修改已知值</button>
-              <button class="btn mode-btn" data-mode="solve">② 点击未知点</button>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <h3>4 · 自动推进</h3>
-
+            <h3>5 · 自动推进</h3>
             <div class="field-row one">
               <div>
                 <label>推进层数</label>
                 <input id="iterations" type="number" min="1" value="1" />
               </div>
             </div>
-
             <button class="btn dark" id="autoSolve">自动推进一层</button>
-            <div class="method-note">每次只推进下一层时间，不会一次性填满全部网格。</div>
+            <div class="method-note">显式法推进下一时间层；隐式/Jacobi/GS 会整层一起更新。</div>
           </div>
 
           <div class="control-group">
-            <h3>5 · 重置</h3>
+            <h3>6 · 重置</h3>
             <button class="btn warn" id="resetAll">全部重置</button>
           </div>
         </aside>
@@ -179,10 +192,9 @@
         <main class="card main-canvas">
           <div class="canvas-header">
             <div>
-              <h3>x-t 网格画布</h3>
+              <h3 id="gridTitle">x-t 网格画布</h3>
               <div class="subtitle" id="canvasTip">当前步骤：修改已知值。点击边界或初始层，可以手动输入数值。</div>
             </div>
-
             <div class="hint" id="modeHint">修改已知值</div>
           </div>
 
@@ -191,7 +203,7 @@
               <div class="sub-card-title">
                 <div>
                   <h4>时间推进网格</h4>
-                  <p>底行是初始条件，左右两列是边界条件；内部白色格子是待求温度。</p>
+                  <p id="gridDesc">底行是初始条件，左右两列是边界条件；内部白色格子是待求温度。</p>
                 </div>
               </div>
 
@@ -213,7 +225,7 @@
               <div class="sub-card-title">
                 <div>
                   <h4>温度分布热力图</h4>
-                  <p>横向是 x，纵向是时间 t。每次推进只新增一层颜色。</p>
+                  <p>横向是空间，纵向是时间。每次推进只新增一层颜色。</p>
                 </div>
               </div>
 
@@ -246,9 +258,11 @@
     const $$ = s => Array.from(document.querySelectorAll(s));
 
     const state = {
-      N: 6,
-      T: 6,
-      mode: "set",
+      N: 5,
+      T: 3,
+      xs: [],
+      ts: [],
+      mode: "solve",
       values: new Map(),
       known: new Set(),
       solved: new Set(),
@@ -261,7 +275,6 @@
     const ctx = canvas.getContext("2d");
 
     const key = (i, n) => `${i},${n}`;
-    const parseKey = k => k.split(",").map(Number);
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
     function fmt(n, d = 4) {
@@ -289,6 +302,12 @@
       }
     }
 
+    function exprVars(i = 0, n = 0) {
+      const s = state.xs[i] ?? 0;
+      const t = state.ts[n] ?? 0;
+      return { s, x: s, r: s, t, n, N: state.N, pi: Math.PI };
+    }
+
     function evalExpr(expr, vars) {
       try {
         const fn = compileExpr(expr, Object.keys(vars));
@@ -304,43 +323,89 @@
       return state.values.has(k) ? state.values.get(k) : 0;
     }
 
+    function dx() { return +$("#dxVal").value || 1; }
+    function dt() { return +$("#dtVal").value || 1; }
+    function isSteady() { return $("#problemType").value === "steady"; }
+
+    function coeffA(i) {
+      return evalExpr($("#aExpr").value, exprVars(i, 0));
+    }
+
+    function coeffB(i) {
+      return evalExpr($("#bExpr").value, exprVars(i, 0));
+    }
+
+    function lambdas(i) {
+      const h = dx();
+      const k = dt();
+      const A = coeffA(i);
+      const B = coeffB(i);
+      return {
+        A, B,
+        L: k * (A / (h * h) - B / (2 * h)),
+        C: -2 * k * A / (h * h),
+        R: k * (A / (h * h) + B / (2 * h))
+      };
+    }
+
     function isBoundaryOrInitial(i, n) {
+      if (isSteady()) return i === 0 || i === state.N - 1;
       return i === 0 || i === state.N - 1 || n === 0;
     }
 
     function setMode(m) {
       state.mode = m;
-
       $$(".mode-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === m));
 
       if (m === "set") {
         $("#modeHint").textContent = "修改已知值";
         $("#canvasTip").textContent = "当前步骤：修改已知值。点击边界或初始层，可以手动输入数值。";
       } else {
-        $("#modeHint").textContent = "点击未知点";
-        $("#canvasTip").textContent = "当前步骤：点击内部未知点。显式法连接上一层三个点；隐式法连接同层相邻未知量。";
+        $("#modeHint").textContent = isSteady() ? "点击未知点" : "点击未知点";
+        $("#canvasTip").textContent = isSteady()
+          ? "当前步骤：点击内部未知点。稳态问题会解空间线性方程组。"
+          : "当前步骤：点击内部未知点。显式法连接上一层三个点；隐式法连接同层相邻未知量。";
       }
-
       render();
     }
 
-    function newGrid() {
-      state.N = clamp(+$("#xNodes").value || 6, 4, 12);
-      state.T = clamp(+$("#tSteps").value || 6, 3, 10);
+    function buildAxes() {
+      const xmin = +$("#xMin").value || 0;
+      const xmax = +$("#xMax").value || 1;
+      const h = Math.abs(dx()) || 1;
+      const k = Math.abs(dt()) || 1;
+      const tmax = +$("#tMax").value || 0;
 
+      const intervals = Math.round((xmax - xmin) / h);
+      state.N = clamp(intervals + 1, 2, 20);
+      state.xs = Array.from({ length: state.N }, (_, i) => xmin + i * h);
+
+      if (isSteady()) {
+        state.T = 1;
+        state.ts = [0];
+      } else {
+        const layers = Math.round(tmax / k) + 1;
+        state.T = clamp(layers, 2, 12);
+        state.ts = Array.from({ length: state.T }, (_, n) => n * k);
+      }
+    }
+
+    function newGrid() {
+      buildAxes();
       state.values.clear();
       state.known.clear();
       state.solved.clear();
       state.selected = null;
       state.deps = [];
       state.last = null;
-
       applyConditions(false);
-      setMode("set");
+      setMode("solve");
       render();
     }
 
     function applyConditions(doRender = true) {
+      buildAxes();
+
       const N = state.N;
       const T = state.T;
       const left = $("#leftB").value;
@@ -355,8 +420,8 @@
       state.last = null;
 
       for (let n = 0; n < T; n++) {
-        const lv = evalExpr(left, { t: n, n, N, x: 0, pi: Math.PI });
-        const rv = evalExpr(right, { t: n, n, N, x: N - 1, pi: Math.PI });
+        const lv = evalExpr(left, exprVars(0, n));
+        const rv = evalExpr(right, exprVars(N - 1, n));
 
         state.values.set(key(0, n), lv);
         state.known.add(key(0, n));
@@ -367,12 +432,13 @@
         state.solved.add(key(N - 1, n));
       }
 
-      for (let i = 0; i < N; i++) {
-        const v = evalExpr(init, { x: i, t: 0, n: 0, N, pi: Math.PI });
-
-        state.values.set(key(i, 0), v);
-        state.known.add(key(i, 0));
-        state.solved.add(key(i, 0));
+      if (!isSteady()) {
+        for (let i = 0; i < N; i++) {
+          const v = evalExpr(init, exprVars(i, 0));
+          state.values.set(key(i, 0), v);
+          state.known.add(key(i, 0));
+          state.solved.add(key(i, 0));
+        }
       }
 
       if (doRender) render();
@@ -384,94 +450,103 @@
       if (state.mode === "set") {
         if (isBoundaryOrInitial(i, n)) {
           const old = state.values.has(k) ? state.values.get(k) : "";
-          const input = prompt(`请输入 u(${i}, ${n}) 的值`, old);
-
+          const input = prompt(`请输入 T(${fmt(state.xs[i], 3)}, ${fmt(state.ts[n] ?? 0, 3)}) 的值`, old);
           if (input === null) return;
-
-          const v = evalExpr(input, { x: i, t: n, n, N: state.N, pi: Math.PI });
-
+          const v = evalExpr(input, exprVars(i, n));
           state.values.set(k, v);
           state.known.add(k);
           state.solved.add(k);
           state.selected = { i, n };
           state.deps = [];
           state.last = { type: "known", i, n, value: v };
-
           render();
         }
-
         return;
       }
 
       if (isBoundaryOrInitial(i, n)) return;
 
-      solveByMethod(i, n, true);
+      if (isSteady()) {
+        solveSteady(mark = true, selectedI = i);
+      } else {
+        solveByMethod(i, n, true);
+      }
       render();
     }
 
     function solveByMethod(i, n, mark = false) {
       const method = $("#method").value;
-
-      if (method === "explicit") {
-        return solveExplicitCell(i, n, mark);
-      }
-
+      if (method === "explicit") return solveExplicitCell(i, n, mark);
       return solveImplicitLayer(n, i, mark, method);
     }
 
     function solveExplicitCell(i, n, mark = false) {
-      const r = +$("#rVal").value || 0;
-
+      if (n <= 0) return 0;
+      const lam = lambdas(i);
       const L = value(i - 1, n - 1);
-      const C = value(i, n - 1);
+      const C0 = value(i, n - 1);
       const R = value(i + 1, n - 1);
 
-      const val = r * L + (1 - 2 * r) * C + r * R;
+      const val = lam.L * L + (1 + lam.C) * C0 + lam.R * R;
 
       state.values.set(key(i, n), val);
       state.solved.add(key(i, n));
 
       if (mark) {
         state.selected = { i, n };
-        state.deps = [
-          { i: i - 1, n: n - 1 },
-          { i, n: n - 1 },
-          { i: i + 1, n: n - 1 }
-        ];
-        state.last = {
-          type: "explicit",
-          i,
-          n,
-          r,
-          L,
-          C,
-          R,
-          value: val
-        };
+        state.deps = [{ i: i - 1, n: n - 1 }, { i, n: n - 1 }, { i: i + 1, n: n - 1 }];
+        state.last = { type: "explicit", i, n, lam, L, C: C0, R, value: val };
       }
-
       return val;
     }
 
     function buildImplicitSystem(n) {
       const N = state.N;
-      const r = +$("#rVal").value || 0;
       const M = N - 2;
-
-      const a = Array(M).fill(-r);
-      const b = Array(M).fill(1 + 2 * r);
-      const c = Array(M).fill(-r);
+      const lower = Array(M).fill(0);
+      const diag = Array(M).fill(0);
+      const upper = Array(M).fill(0);
       const rhs = Array(M).fill(0);
 
       for (let j = 0; j < M; j++) {
         const i = j + 1;
+        const lam = lambdas(i);
+
+        lower[j] = -lam.L;
+        diag[j] = 1 - lam.C;
+        upper[j] = -lam.R;
         rhs[j] = value(i, n - 1);
       }
 
-      rhs[0] += r * value(0, n);
-      rhs[M - 1] += r * value(N - 1, n);
+      rhs[0] -= lower[0] * value(0, n);
+      rhs[M - 1] -= upper[M - 1] * value(N - 1, n);
 
-      return { a, b, c, rhs, r, M };
+      return { lower, diag, upper, rhs, M };
+    }
+
+    function buildSteadySystem() {
+      const N = state.N;
+      const h = dx();
+      const M = N - 2;
+      const lower = Array(M).fill(0);
+      const diag = Array(M).fill(0);
+      const upper = Array(M).fill(0);
+      const rhs = Array(M).fill(0);
+
+      for (let j = 0; j < M; j++) {
+        const i = j + 1;
+        const A = coeffA(i);
+        const B = coeffB(i);
+        lower[j] = A / (h * h) - B / (2 * h);
+        diag[j] = -2 * A / (h * h);
+        upper[j] = A / (h * h) + B / (2 * h);
+        rhs[j] = 0;
+      }
+
+      rhs[0] -= lower[0] * value(0, 0);
+      rhs[M - 1] -= upper[M - 1] * value(N - 1, 0);
+
+      return { lower, diag, upper, rhs, M };
     }
 
     function solveTridiagonalThomas(a, b, c, d) {
@@ -490,75 +565,63 @@
       }
 
       x[n - 1] = dp[n - 1];
-
-      for (let i = n - 2; i >= 0; i--) {
-        x[i] = dp[i] - cp[i] * x[i + 1];
-      }
-
+      for (let i = n - 2; i >= 0; i--) x[i] = dp[i] - cp[i] * x[i + 1];
       return x;
     }
 
-    function solveImplicitGaussian(n) {
-      const { a, b, c, rhs } = buildImplicitSystem(n);
-      return solveTridiagonalThomas(a, b, c, rhs);
-    }
-
-    function solveImplicitJacobi(n, iterations = 35) {
-      const { r, M, rhs } = buildImplicitSystem(n);
-      let old = Array(M).fill(0);
-      let next = Array(M).fill(0);
-
+    function iterateLinearSystem(system, method, iterations) {
+      const { lower, diag, upper, rhs, M } = system;
+      let x = Array(M).fill(+$("#guessVal").value || 0);
       for (let j = 0; j < M; j++) {
-        old[j] = value(j + 1, n);
+        const oldVal = value(j + 1, isSteady() ? 0 : currentLayerForIter);
+        if (Number.isFinite(oldVal) && state.solved.has(key(j + 1, isSteady() ? 0 : currentLayerForIter))) x[j] = oldVal;
       }
 
-      for (let it = 0; it < iterations; it++) {
-        for (let j = 0; j < M; j++) {
-          const left = j === 0 ? 0 : old[j - 1];
-          const right = j === M - 1 ? 0 : old[j + 1];
-          next[j] = (rhs[j] + r * left + r * right) / (1 + 2 * r);
+      if (method === "implicitJacobi") {
+        let old = x.slice();
+        let next = x.slice();
+        for (let it = 0; it < iterations; it++) {
+          for (let j = 0; j < M; j++) {
+            const left = j === 0 ? 0 : old[j - 1];
+            const right = j === M - 1 ? 0 : old[j + 1];
+            next[j] = (rhs[j] - lower[j] * left - upper[j] * right) / diag[j];
+          }
+          old = next.slice();
         }
-
-        old = next.slice();
-      }
-
-      return old;
-    }
-
-    function solveImplicitGS(n, iterations = 35) {
-      const { r, M, rhs } = buildImplicitSystem(n);
-      const x = Array(M).fill(0);
-
-      for (let j = 0; j < M; j++) {
-        x[j] = value(j + 1, n);
+        return old;
       }
 
       for (let it = 0; it < iterations; it++) {
         for (let j = 0; j < M; j++) {
           const left = j === 0 ? 0 : x[j - 1];
           const right = j === M - 1 ? 0 : x[j + 1];
-          x[j] = (rhs[j] + r * left + r * right) / (1 + 2 * r);
+          x[j] = (rhs[j] - lower[j] * left - upper[j] * right) / diag[j];
         }
       }
-
       return x;
     }
 
+    let currentLayerForIter = 0;
+
     function solveImplicitLayer(n, selectedI, mark = false, method = "implicitGaussian") {
       if (n <= 0 || n >= state.T) return 0;
+
+      const system = buildImplicitSystem(n);
+      currentLayerForIter = n;
+      const iter = Math.max(1, +$("#iterPerLayer").value || 2);
 
       let result;
       let methodName;
 
       if (method === "implicitGS") {
-        result = solveImplicitGS(n);
-        methodName = "Implicit · Gauss-Seidel";
+        result = iterateLinearSystem(system, method, iter);
+        methodName = `Implicit · Gauss-Seidel · ${iter} iterations`;
       } else if (method === "implicitJacobi") {
-        result = solveImplicitJacobi(n);
-        methodName = "Implicit · Jacobi";
+        result = iterateLinearSystem(system, method, iter);
+        methodName = `Implicit · Jacobi · ${iter} iterations`;
       } else {
-        result = solveImplicitGaussian(n);
-        methodName = "Implicit · Gaussian";
+        result = solveTridiagonalThomas(system.lower, system.diag, system.upper, system.rhs);
+        methodName = "Implicit · Gaussian / Thomas";
       }
 
       for (let j = 0; j < result.length; j++) {
@@ -567,26 +630,18 @@
         state.solved.add(key(i, n));
       }
 
-      const r = +$("#rVal").value || 0;
       const valueNow = value(selectedI, n);
 
       if (mark) {
         state.selected = { i: selectedI, n };
-
-        const deps = [
-          { i: selectedI, n: n - 1 }
-        ];
-
+        const deps = [{ i: selectedI, n: n - 1 }];
         if (selectedI - 1 >= 0) deps.push({ i: selectedI - 1, n });
         if (selectedI + 1 <= state.N - 1) deps.push({ i: selectedI + 1, n });
-
         state.deps = deps;
-
         state.last = {
           type: "implicit",
           i: selectedI,
           n,
-          r,
           centerOld: value(selectedI, n - 1),
           leftNew: value(selectedI - 1, n),
           rightNew: value(selectedI + 1, n),
@@ -594,54 +649,80 @@
           methodName
         };
       }
-
       return valueNow;
     }
 
+    function solveSteady(mark = true, selectedI = 1) {
+      const system = buildSteadySystem();
+      currentLayerForIter = 0;
+      const method = $("#method").value;
+      const iter = Math.max(1, +$("#iterPerLayer").value || 3);
+
+      let result;
+      let methodName;
+
+      if (method === "implicitGS") {
+        result = iterateLinearSystem(system, "implicitGS", iter);
+        methodName = `Steady · Gauss-Seidel · ${iter} iterations`;
+      } else if (method === "implicitJacobi") {
+        result = iterateLinearSystem(system, "implicitJacobi", iter);
+        methodName = `Steady · Jacobi · ${iter} iterations`;
+      } else {
+        result = solveTridiagonalThomas(system.lower, system.diag, system.upper, system.rhs);
+        methodName = "Steady · Gaussian / Thomas";
+      }
+
+      for (let j = 0; j < result.length; j++) {
+        const i = j + 1;
+        state.values.set(key(i, 0), result[j]);
+        state.solved.add(key(i, 0));
+      }
+
+      if (mark) {
+        state.selected = { i: selectedI, n: 0 };
+        state.deps = [];
+        if (selectedI - 1 >= 0) state.deps.push({ i: selectedI - 1, n: 0 });
+        if (selectedI + 1 <= state.N - 1) state.deps.push({ i: selectedI + 1, n: 0 });
+        state.last = {
+          type: "steady",
+          i: selectedI,
+          n: 0,
+          leftNew: value(selectedI - 1, 0),
+          rightNew: value(selectedI + 1, 0),
+          value: value(selectedI, 0),
+          methodName
+        };
+      }
+    }
+
     function nextUnsolvedLayer() {
+      if (isSteady()) return state.solved.size < state.N ? 0 : null;
       for (let n = 1; n < state.T; n++) {
         for (let i = 1; i < state.N - 1; i++) {
           if (!state.solved.has(key(i, n))) return n;
         }
       }
-
       return null;
     }
 
     function solveWholeLayer(n, mark = true) {
       if (n == null) return;
+      if (isSteady()) {
+        solveSteady(mark, 1);
+        return;
+      }
 
       const method = $("#method").value;
 
       if (method === "explicit") {
-        for (let i = 1; i < state.N - 1; i++) {
-          solveExplicitCell(i, n, false);
-        }
+        for (let i = 1; i < state.N - 1; i++) solveExplicitCell(i, n, false);
 
         if (mark) {
           const i = 1;
-          const r = +$("#rVal").value || 0;
-          const L = value(i - 1, n - 1);
-          const C = value(i, n - 1);
-          const R = value(i + 1, n - 1);
-          const val = value(i, n);
-
+          const lam = lambdas(i);
           state.selected = { i, n };
-          state.deps = [
-            { i: i - 1, n: n - 1 },
-            { i, n: n - 1 },
-            { i: i + 1, n: n - 1 }
-          ];
-          state.last = {
-            type: "explicit",
-            i,
-            n,
-            r,
-            L,
-            C,
-            R,
-            value: val
-          };
+          state.deps = [{ i: i - 1, n: n - 1 }, { i, n: n - 1 }, { i: i + 1, n: n - 1 }];
+          state.last = { type: "explicit", i, n, lam, L: value(i - 1, n - 1), C: value(i, n - 1), R: value(i + 1, n - 1), value: value(i, n) };
         }
       } else {
         solveImplicitLayer(n, 1, mark, method);
@@ -650,13 +731,11 @@
 
     function autoSolve() {
       const layers = Math.max(1, +$("#iterations").value || 1);
-
       for (let k = 0; k < layers; k++) {
         const n = nextUnsolvedLayer();
         if (n == null) break;
         solveWholeLayer(n, true);
       }
-
       render();
     }
 
@@ -669,48 +748,33 @@
         const d = document.createElement("div");
         d.className = "heat-cell " + cls;
         d.textContent = text;
-
         if (i != null && n != null) {
           d.dataset.i = i;
           d.dataset.n = n;
         }
-
         if (fn) d.addEventListener("click", fn);
-
         grid.appendChild(d);
       }
 
-      add("t\\x", "header");
+      const vname = $("#varName").value;
+      add(isSteady() ? vname : `t\\${vname}`, "header");
 
-      for (let i = 0; i < state.N; i++) {
-        add(i, "header");
-      }
+      for (let i = 0; i < state.N; i++) add(fmt(state.xs[i], 2), "header");
 
       for (let n = state.T - 1; n >= 0; n--) {
-        add(n, "header");
+        add(isSteady() ? "T" : fmt(state.ts[n], 2), "header");
 
         for (let i = 0; i < state.N; i++) {
           const k = key(i, n);
           let cls = "unknown";
           let txt = "";
 
-          if (isBoundaryOrInitial(i, n)) {
-            cls = "bound";
-          } else if (state.solved.has(k)) {
-            cls = "known";
-          }
+          if (isBoundaryOrInitial(i, n)) cls = "bound";
+          else if (state.solved.has(k)) cls = "known";
 
-          if (state.selected && state.selected.i === i && state.selected.n === n) {
-            cls += " selected";
-          }
-
-          if (state.deps.some(p => p.i === i && p.n === n)) {
-            cls += " dep";
-          }
-
-          if (state.values.has(k)) {
-            txt = fmt(state.values.get(k), 1);
-          }
+          if (state.selected && state.selected.i === i && state.selected.n === n) cls += " selected";
+          if (state.deps.some(p => p.i === i && p.n === n)) cls += " dep";
+          if (state.values.has(k)) txt = fmt(state.values.get(k), 1);
 
           add(txt, cls, i, n, () => clickCell(i, n));
         }
@@ -723,7 +787,6 @@
       const svg = $("#linkLayer");
       const wrap = $("#xtWrap");
       const selected = state.selected;
-
       svg.innerHTML = "";
 
       if (!selected || !state.deps.length) return;
@@ -736,13 +799,8 @@
       function centerOf(i, n) {
         const el = document.querySelector(`[data-i="${i}"][data-n="${n}"]`);
         if (!el) return null;
-
         const box = el.getBoundingClientRect();
-
-        return {
-          x: box.left - wrapBox.left + box.width / 2,
-          y: box.top - wrapBox.top + box.height / 2
-        };
+        return { x: box.left - wrapBox.left + box.width / 2, y: box.top - wrapBox.top + box.height / 2 };
       }
 
       const s = centerOf(selected.i, selected.n);
@@ -751,7 +809,6 @@
       for (const p of state.deps) {
         const q = centerOf(p.i, p.n);
         if (!q) continue;
-
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         line.setAttribute("x1", s.x);
         line.setAttribute("y1", s.y);
@@ -762,35 +819,24 @@
         line.setAttribute("stroke-linecap", "round");
         line.setAttribute("stroke-dasharray", "7 7");
         line.setAttribute("opacity", "0.75");
-
         svg.appendChild(line);
       }
     }
 
     function colorForValue(v, min, max) {
       if (!Number.isFinite(v)) return [226, 232, 240];
-
       if (Math.abs(max - min) < 1e-12) return [248, 250, 252];
-
       const mid = (max + min) / 2;
       const scale = Math.max(Math.abs(max - mid), Math.abs(min - mid)) || 1;
       const z = clamp((v - mid) / scale, -1, 1);
-
-      if (z > 0) {
-        return [255, Math.round(245 - 105 * z), Math.round(230 - 175 * z)];
-      }
-
-      if (z < 0) {
-        return [Math.round(230 + 120 * z), Math.round(240 + 75 * z), 255];
-      }
-
+      if (z > 0) return [255, Math.round(245 - 105 * z), Math.round(230 - 175 * z)];
+      if (z < 0) return [Math.round(230 + 120 * z), Math.round(240 + 75 * z), 255];
       return [248, 250, 252];
     }
 
     function renderHeat() {
       const W = canvas.width;
       const H = canvas.height;
-
       ctx.clearRect(0, 0, W, H);
       ctx.fillStyle = "#f8fafc";
       ctx.fillRect(0, 0, W, H);
@@ -807,13 +853,8 @@
         for (let i = 0; i < state.N; i++) {
           const k = key(i, n);
           const v = state.values.get(k);
-
           let col = [226, 232, 240];
-
-          if (state.values.has(k)) {
-            col = colorForValue(v, min, max);
-          }
-
+          if (state.values.has(k)) col = colorForValue(v, min, max);
           ctx.fillStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
           ctx.fillRect(pad + i * cw, H - pad - (n + 1) * ch, cw, ch);
           ctx.strokeStyle = "rgba(255,255,255,.85)";
@@ -824,41 +865,40 @@
 
     function renderRule() {
       const method = $("#method").value;
-      const r = fmt(+$("#rVal").value || 0, 3);
+      const h = fmt(dx(), 3);
+      const k = fmt(dt(), 3);
+      const A = $("#aExpr").value;
+      const B = $("#bExpr").value;
 
       let label = "Explicit 显式";
-      let formula = `uᵢⁿ⁺¹ = r uᵢ₋₁ⁿ + (1 - 2r)uᵢⁿ + r uᵢ₊₁ⁿ`;
-      let note = `当前 r = <b>${r}</b>。显式法只用上一时间层三个点，直接推进下一层。`;
+      let formula = `Tᵢⁿ⁺¹ = λL·Tᵢ₋₁ⁿ + (1+λC)·Tᵢⁿ + λR·Tᵢ₊₁ⁿ`;
+      let note = `标准方程：<code>Tt = A(s)Tss + B(s)Ts</code>；A=${A}，B=${B}，Δs=${h}，Δt=${k}。`;
 
-      if (method === "implicitGaussian") {
+      if (isSteady()) {
+        label = "Steady 稳态";
+        formula = `(A/h²-B/2h)Tᵢ₋₁ + (-2A/h²)Tᵢ + (A/h²+B/2h)Tᵢ₊₁ = 0`;
+        note = `稳态方程没有时间层，只解空间方向线性方程组。`;
+      } else if (method === "implicitGaussian") {
         label = "Implicit · Gaussian";
-        formula = `-r uᵢ₋₁ⁿ⁺¹ + (1 + 2r)uᵢⁿ⁺¹ - r uᵢ₊₁ⁿ⁺¹ = uᵢⁿ`;
-        note = `隐式法会把同一新时间层的未知点联立成三对角方程组，然后用高斯消元 / Thomas 法直接求解。`;
-      }
-
-      if (method === "implicitGS") {
+        formula = `-λL·Tᵢ₋₁ⁿ⁺¹ + (1-λC)Tᵢⁿ⁺¹ - λR·Tᵢ₊₁ⁿ⁺¹ = Tᵢⁿ`;
+        note = `隐式法会把同一新时间层的未知点联立成三对角方程组。`;
+      } else if (method === "implicitGS") {
         label = "Implicit · Gauss-Seidel";
-        formula = `uᵢⁿ⁺¹ = [uᵢⁿ + r uᵢ₋₁ⁿ⁺¹ + r uᵢ₊₁ⁿ⁺¹] / (1 + 2r)`;
-        note = `Gauss-Seidel 会在同一时间层内边算边更新，通常比 Jacobi 收敛更快。`;
-      }
-
-      if (method === "implicitJacobi") {
+        formula = `Tᵢⁿ⁺¹ = [Tᵢⁿ + λL·Tᵢ₋₁ⁿ⁺¹ + λR·Tᵢ₊₁ⁿ⁺¹] / (1-λC)`;
+        note = `本页按题目常见要求，只做“每层迭代次数”中设置的次数。`;
+      } else if (method === "implicitJacobi") {
         label = "Implicit · Jacobi";
-        formula = `uᵢⁿ⁺¹,new = [uᵢⁿ + r uᵢ₋₁ⁿ⁺¹,old + r uᵢ₊₁ⁿ⁺¹,old] / (1 + 2r)`;
-        note = `Jacobi 每一轮都用上一轮旧值计算整层新值，逻辑清晰但通常收敛较慢。`;
+        formula = `Tᵢⁿ⁺¹,new = [Tᵢⁿ + λL·Tᵢ₋₁ⁿ⁺¹,old + λR·Tᵢ₊₁ⁿ⁺¹,old] / (1-λC)`;
+        note = `Jacobi 每一轮都用上一轮旧值计算整层新值。`;
       }
 
       $("#ruleBox").innerHTML = `
         <div class="eq-wrap">
           <div class="eq-head">
             <span class="eq-chip">${label}</span>
-            <span class="eq-chip gray">Heat Equation</span>
+            <span class="eq-chip gray">General PDE</span>
           </div>
-
-          <div class="equation">
-            <div class="math-line">${formula}</div>
-          </div>
-
+          <div class="equation"><div class="math-line">${formula}</div></div>
           <div class="formula-note">${note}</div>
         </div>
       `;
@@ -871,18 +911,16 @@
       }
 
       const c = state.last;
+      const varName = $("#varName").value;
 
       if (c.type === "known") {
         $("#subBox").innerHTML = `
           <div class="eq-wrap">
-            <div class="eq-head">
-              <span class="eq-chip gray">已知条件</span>
-            </div>
-
+            <div class="eq-head"><span class="eq-chip gray">已知条件</span></div>
             <div class="equation">
               <div class="equation-steps">
                 <div class="eq-row">
-                  <div class="eq-left">u(${c.i}, ${c.n})</div>
+                  <div class="eq-left">T(${fmt(state.xs[c.i],3)}, ${fmt(state.ts[c.n] ?? 0,3)})</div>
                   <div class="eq-sign">=</div>
                   <div class="eq-right">${fmt(c.value, 6)}</div>
                 </div>
@@ -894,63 +932,52 @@
       }
 
       if (c.type === "explicit") {
-        const a = c.r * c.L;
-        const b = (1 - 2 * c.r) * c.C;
-        const d = c.r * c.R;
+        const a = c.lam.L * c.L;
+        const b = (1 + c.lam.C) * c.C;
+        const d = c.lam.R * c.R;
 
         $("#subBox").innerHTML = `
           <div class="eq-wrap">
             <div class="eq-head">
               <span class="eq-chip">Explicit 代入</span>
-              <span class="eq-chip gray">点 (${c.i}, ${c.n})</span>
+              <span class="eq-chip gray">${varName}=${fmt(state.xs[c.i],3)}, t=${fmt(state.ts[c.n],3)}</span>
             </div>
 
             <div class="equation">
               <div class="equation-steps">
                 <div class="eq-row">
-                  <div class="eq-left">u(${c.i}, ${c.n})</div>
+                  <div class="eq-left">T</div>
                   <div class="eq-sign">=</div>
-                  <div class="eq-right">${fmt(c.r, 3)}(${fmt(c.L, 4)}) + ${fmt(1 - 2 * c.r, 3)}(${fmt(c.C, 4)}) + ${fmt(c.r, 3)}(${fmt(c.R, 4)})</div>
+                  <div class="eq-right">${fmt(c.lam.L,4)}(${fmt(c.L,4)}) + ${fmt(1+c.lam.C,4)}(${fmt(c.C,4)}) + ${fmt(c.lam.R,4)}(${fmt(c.R,4)})</div>
                 </div>
-
-                <div class="eq-row">
-                  <div class="eq-left"></div>
-                  <div class="eq-sign">=</div>
-                  <div class="eq-right">${fmt(a, 5)} + ${fmt(b, 5)} + ${fmt(d, 5)}</div>
-                </div>
-
-                <div class="eq-row">
-                  <div class="eq-left"></div>
-                  <div class="eq-sign">=</div>
-                  <div class="eq-right">${fmt(c.value, 6)}</div>
-                </div>
+                <div class="eq-row"><div class="eq-left"></div><div class="eq-sign">=</div><div class="eq-right">${fmt(a,5)} + ${fmt(b,5)} + ${fmt(d,5)}</div></div>
+                <div class="eq-row"><div class="eq-left"></div><div class="eq-sign">=</div><div class="eq-right">${fmt(c.value,6)}</div></div>
               </div>
             </div>
 
             <table class="math-table">
-              <tr><td>左下点</td><td>${fmt(c.L, 6)}</td></tr>
-              <tr><td>正下点</td><td>${fmt(c.C, 6)}</td></tr>
-              <tr><td>右下点</td><td>${fmt(c.R, 6)}</td></tr>
-              <tr><td>r</td><td>${fmt(c.r, 6)}</td></tr>
-              <tr><td>结果</td><td>${fmt(c.value, 6)}</td></tr>
+              <tr><td>λL</td><td>${fmt(c.lam.L,6)}</td></tr>
+              <tr><td>1+λC</td><td>${fmt(1+c.lam.C,6)}</td></tr>
+              <tr><td>λR</td><td>${fmt(c.lam.R,6)}</td></tr>
+              <tr><td>结果</td><td>${fmt(c.value,6)}</td></tr>
             </table>
           </div>
         `;
         return;
       }
 
-      if (c.type === "implicit") {
+      if (c.type === "implicit" || c.type === "steady") {
         $("#subBox").innerHTML = `
           <div class="eq-wrap">
             <div class="eq-head">
               <span class="eq-chip">${c.methodName}</span>
-              <span class="eq-chip gray">时间层 n = ${c.n}</span>
+              <span class="eq-chip gray">${varName}=${fmt(state.xs[c.i],3)}</span>
             </div>
 
             <div class="equation">
               <div class="equation-steps">
                 <div class="eq-row">
-                  <div class="eq-left">u(${c.i}, ${c.n})</div>
+                  <div class="eq-left">T</div>
                   <div class="eq-sign">=</div>
                   <div class="eq-right">${fmt(c.value, 6)}</div>
                 </div>
@@ -958,40 +985,83 @@
             </div>
 
             <table class="math-table">
-              <tr><td>上一层中心</td><td>${fmt(c.centerOld, 6)}</td></tr>
-              <tr><td>同层左点</td><td>${fmt(c.leftNew, 6)}</td></tr>
-              <tr><td>同层右点</td><td>${fmt(c.rightNew, 6)}</td></tr>
-              <tr><td>r</td><td>${fmt(c.r, 6)}</td></tr>
-              <tr><td>结果</td><td>${fmt(c.value, 6)}</td></tr>
+              ${c.centerOld == null ? "" : `<tr><td>上一层中心</td><td>${fmt(c.centerOld,6)}</td></tr>`}
+              <tr><td>同层左点</td><td>${fmt(c.leftNew,6)}</td></tr>
+              <tr><td>同层右点</td><td>${fmt(c.rightNew,6)}</td></tr>
+              <tr><td>结果</td><td>${fmt(c.value,6)}</td></tr>
             </table>
           </div>
         `;
       }
     }
 
+    function renderTitles() {
+      const v = $("#varName").value;
+      $("#gridTitle").textContent = isSteady() ? `${v} 空间网格画布` : `${v}-t 网格画布`;
+      $("#gridDesc").textContent = isSteady()
+        ? "左右端是边界条件；内部白色格子是待求温度。"
+        : "底行是初始条件，左右两列是边界条件；内部白色格子是待求温度。";
+    }
+
     function render() {
+      renderTitles();
       renderGrid();
       renderHeat();
       renderRule();
       renderSub();
     }
 
+    const presets = {
+      cylinder2019: {
+        varName:"r", problemType:"transient", xMin:0.2, xMax:1, dxVal:0.2, dtVal:0.4, tMax:0.8,
+        aExpr:"0.1*4/(pi^2)", bExpr:"0.1*2/(pi*s)", leftB:"12+t", rightB:"20+t", initExpr:"10*(s+1)",
+        method:"explicit", guessVal:16, iterPerLayer:2
+      },
+      disk2022: {
+        varName:"r", problemType:"transient", xMin:0.1, xMax:0.5, dxVal:0.1, dtVal:0.4, tMax:0.8,
+        aExpr:"0.5", bExpr:"2", leftB:"2+t", rightB:"6+t", initExpr:"10*(s+0.1)",
+        method:"implicitGS", guessVal:4, iterPerLayer:2
+      },
+      heat2023: {
+        varName:"x", problemType:"transient", xMin:0, xMax:4, dxVal:1, dtVal:0.4, tMax:0.8,
+        aExpr:"0.5", bExpr:"0", leftB:"0", rightB:"0", initExpr:"sin(pi*s/2)",
+        method:"explicit", guessVal:0, iterPerLayer:2
+      },
+      steady2016: {
+        varName:"r", problemType:"steady", xMin:0.5, xMax:1, dxVal:0.1, dtVal:0.1, tMax:0,
+        aExpr:"1", bExpr:"1/s", leftB:"100", rightB:"200", initExpr:"0",
+        method:"implicitJacobi", guessVal:150, iterPerLayer:3
+      }
+    };
+
+    function applyPreset(name) {
+      const p = presets[name];
+      if (!p) return;
+      for (const [id, val] of Object.entries(p)) {
+        const el = $("#" + id);
+        if (el) el.value = val;
+      }
+      newGrid();
+    }
+
+    $$(".preset-btn").forEach(b => b.addEventListener("click", () => applyPreset(b.dataset.preset)));
     $$(".mode-btn").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
     $("#newGrid").addEventListener("click", newGrid);
     $("#applyConditions").addEventListener("click", () => applyConditions(true));
     $("#autoSolve").addEventListener("click", autoSolve);
     $("#resetAll").addEventListener("click", newGrid);
-    $("#rVal").addEventListener("input", renderRule);
-    $("#method").addEventListener("change", () => {
-      state.selected = null;
-      state.deps = [];
-      state.last = null;
-      render();
+    ["aExpr","bExpr","method","problemType","varName","dxVal","dtVal"].forEach(id => {
+      $("#" + id).addEventListener("change", () => {
+        state.selected = null;
+        state.deps = [];
+        state.last = null;
+        if (["problemType","dxVal","dtVal","varName"].includes(id)) newGrid();
+        else render();
+      });
     });
 
     window.addEventListener("resize", drawLinks);
-
-    newGrid();
+    applyPreset("heat2023");
   </script>
 </body>
 </html>
