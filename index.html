@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>有限差分可视化实验台</title>
+  <link rel="stylesheet" href="css/style.css" />
+
+  <style>
+    :root{
+      --bg1:#f6f9ff;
+      --bg2:#eef3fb;
+      --card:rgba(255,255,255,.78);
+      --line:rgba(148,163,184,.18);
+      --text:#0f172a;
+      --muted:#667085;
+      --blue:#2563eb;
+      --blue2:#3b82f6;
+      --shadow:0 20px 60px rgba(15,23,42,.08);
+      --radius-xl:32px;
+      --radius-lg:24px;
+      --radius-md:18px;
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
+      margin:0;
+      padding:0;
+      min-height:100%;
+      font-family:"SF Pro Display","PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(59,130,246,.10), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(37,99,235,.08), transparent 24%),
+        linear-gradient(180deg,var(--bg1),var(--bg2));
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(rgba(148,163,184,.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,.08) 1px, transparent 1px);
+      background-size:44px 44px;
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,.45), rgba(0,0,0,.12));
+      z-index:0;
+    }
+
+    .page{
+      position:relative;
+      z-index:1;
+      width:min(1120px, calc(100% - 32px));
+      margin:28px auto 42px;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:42px 34px 34px;
+      border-radius:var(--radius-xl);
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.75);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+      animation:fadeUp .8s ease both;
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      right:-80px;
+      top:-80px;
+      width:240px;
+      height:240px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(59,130,246,.14), transparent 70%);
+      pointer-events:none;
+      animation:floatSoft 6s ease-in-out infinite;
+    }
+
+    .hero-top{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    .dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:linear-gradient(180deg,var(--blue2),var(--blue));
+      box-shadow:0 0 0 8px rgba(37,99,235,.10);
+      flex:0 0 auto;
+    }
+
+    .mini{
+      font-size:13px;
+      font-weight:700;
+      letter-spacing:.08em;
+      color:#64748b;
+      text-transform:uppercase;
+    }
+
+    .hero h1{
+      margin:0;
+      font-size:clamp(34px,5vw,56px);
+      line-height:1.05;
+      letter-spacing:-.04em;
+      font-weight:800;
+    }
+
+    .hero p{
+      margin:12px 0 0;
+      font-size:16px;
+      line-height:1.8;
+      color:var(--muted);
+      max-width:760px;
+    }
+
+    .entry-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:22px;
+      margin-top:22px;
+    }
+
+    .entry{
+      position:relative;
+      overflow:hidden;
+      text-decoration:none;
+      color:inherit;
+      padding:26px 24px 22px;
+      border-radius:28px;
+      background:rgba(255,255,255,.72);
+      border:1px solid rgba(255,255,255,.85);
+      box-shadow:0 16px 44px rgba(15,23,42,.06);
+      backdrop-filter:blur(10px);
+      transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+      animation:fadeUp .9s ease both;
+    }
+
+    .entry:nth-child(2){
+      animation-delay:.08s;
+    }
+
+    .entry:hover{
+      transform:translateY(-6px);
+      box-shadow:0 22px 56px rgba(15,23,42,.10);
+      border-color:rgba(37,99,235,.18);
+    }
+
+    .entry::before{
+      content:"";
+      position:absolute;
+      right:-30px;
+      bottom:-30px;
+      width:130px;
+      height:130px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(37,99,235,.10), transparent 72%);
+      transition:transform .4s ease;
+    }
+
+    .entry:hover::before{
+      transform:scale(1.1);
+    }
+
+    .entry-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      height:34px;
+      padding:0 14px;
+      border-radius:999px;
+      background:rgba(37,99,235,.10);
+      color:var(--blue);
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.04em;
+    }
+
+    .icon{
+      width:54px;
+      height:54px;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:24px;
+      color:var(--blue);
+      background:linear-gradient(180deg,#eff6ff,#dbeafe);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+      animation:floatSoft 5s ease-in-out infinite;
+    }
+
+    .entry h2{
+      margin:0 0 8px;
+      font-size:28px;
+      line-height:1.15;
+      letter-spacing:-.03em;
+      font-weight:800;
+    }
+
+    .entry p{
+      margin:0;
+      font-size:15px;
+      line-height:1.8;
+      color:var(--muted);
+      max-width:92%;
+    }
+
+    .entry-foot{
+      margin-top:18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .go{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:12px 16px;
+      border-radius:16px;
+      background:linear-gradient(180deg,#1d4ed8,#2563eb);
+      color:#fff;
+      font-size:14px;
+      font-weight:700;
+      box-shadow:0 10px 20px rgba(37,99,235,.20);
+    }
+
+    .simple-note{
+      font-size:13px;
+      color:#64748b;
+    }
+
+    .footer-note{
+      margin-top:18px;
+      text-align:center;
+      color:#7b8798;
+      font-size:13px;
+      letter-spacing:.01em;
+      animation:fadeIn 1.2s ease both;
+    }
+
+    @keyframes fadeUp{
+      from{
+        opacity:0;
+        transform:translateY(16px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    @keyframes fadeIn{
+      from{opacity:0}
+      to{opacity:1}
+    }
+
+    @keyframes floatSoft{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-6px)}
+    }
+
+    @media (max-width: 860px){
+      .entry-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 640px){
+      .page{
+        width:min(100% - 18px, 1120px);
+        margin:18px auto 28px;
+      }
+
+      .hero{
+        padding:28px 20px 24px;
+        border-radius:24px;
+      }
+
+      .entry{
+        padding:22px 18px 18px;
+        border-radius:22px;
+      }
+
+      .entry h2{
+        font-size:24px;
+      }
+
+      .hero p,
+      .entry p{
+        font-size:14px;
+      }
+
+      .entry-foot{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="hero-top">
+        <span class="dot"></span>
+        <span class="mini">Finite Difference Visual Lab</span>
+      </div>
+
+      <h1>有限差分可视化实验台</h1>
+      <p>选择题型，进入不同网页进行交互式学习。</p>
+    </section>
+
+    <main class="entry-grid">
+      <a class="entry" href="type1.html">
+        <div class="entry-head">
+          <span class="badge">题型 1</span>
+          <span class="icon">◎</span>
+        </div>
+
+        <h2>Poisson / Laplace</h2>
+        <p>不规则区域 · 手动画边界 · 逐点求解</p>
+
+        <div class="entry-foot">
+          <span class="go">进入 →</span>
+          <span class="simple-note">二维区域</span>
+        </div>
+      </a>
+
+      <a class="entry" href="type2.html">
+        <div class="entry-head">
+          <span class="badge">题型 2</span>
+          <span class="icon">≈</span>
+        </div>
+
+        <h2>Heat Equation</h2>
+        <p>x-t 网格 · 时间推进 · 温度演化</p>
+
+        <div class="entry-foot">
+          <span class="go">进入 →</span>
+          <span class="simple-note">一维热传导</span>
+        </div>
+      </a>
+    </main>
+
+    <div class="footer-note">
+      简洁 · 交互 · 可视化
+    </div>
+  </div>
+</body>
+</html>
